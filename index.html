@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta charset="UTF-8">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --gold:#b8973a;
+  --gold-light:#d4af5a;
+  --gold-pale:#f5edd8;
+  --dark:#1a1612;
+  --gray:#6b6560;
+  --border:#e8e0d0;
+  --bg:#f9f6f0;
+  --card:#ffffff;
+  --red:#c0392b;
+}
+
+html{font-size:16px}
+
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  color:var(--dark);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ヘッダー */
+.header{
+  background:var(--dark);
+  padding-top:env(safe-area-inset-top);
+}
+.header-inner{
+  padding:28px 20px 22px;
+  text-align:center;
+  position:relative;
+}
+.header-inner::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:50%;transform:translateX(-50%);
+  width:40px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.header-eyebrow{
+  font-size:10px;letter-spacing:0.35em;
+  color:var(--gold);margin-bottom:8px;font-weight:300;
+}
+.header h1{
+  font-family:'Cormorant Garamond',serif;
+  color:#fff;font-size:24px;font-weight:300;letter-spacing:0.12em;
+}
+.header-sub{
+  font-size:10px;color:rgba(255,255,255,0.35);
+  letter-spacing:0.18em;margin-top:8px;
+}
+
+/* ようこそ帯 */
+.welcome-bar{
+  background:var(--gold-pale);
+  padding:10px 20px;text-align:center;
+  font-size:12px;color:var(--gray);
+  letter-spacing:0.05em;border-bottom:1px solid var(--border);
+}
+.welcome-bar strong{color:var(--dark)}
+
+/* メイン */
+.main{
+  padding:20px 16px 60px;
+  max-width:480px;margin:0 auto;
+}
+
+/* ステップラベル */
+.step{
+  display:flex;align-items:center;gap:10px;
+  margin:20px 0 12px;
+}
+.step:first-child{margin-top:4px}
+.step-num{
+  width:24px;height:24px;border-radius:50%;
+  border:1px solid var(--gold);color:var(--gold);
+  font-family:'Cormorant Garamond',serif;font-size:13px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.step-label{
+  font-size:10px;letter-spacing:0.22em;color:var(--gray);text-transform:uppercase;
+}
+
+/* カード */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:6px;padding:20px 18px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;
+  width:3px;height:100%;
+  background:linear-gradient(180deg,var(--gold),var(--gold-light));
+}
+
+/* フォーム要素 */
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+
+label{
+  display:block;font-size:10px;letter-spacing:0.18em;
+  color:var(--gray);margin-bottom:7px;font-weight:400;
+}
+.required{color:var(--red);margin-left:2px}
+
+input[type="text"],
+input[type="tel"],
+input[type="number"],
+select,textarea{
+  width:100%;padding:14px;
+  background:#faf8f4;border:1px solid var(--border);
+  border-radius:4px;font-size:16px;
+  color:var(--dark);font-family:'Noto Sans JP',sans-serif;
+  appearance:none;-webkit-appearance:none;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(184,151,58,0.1);
+  background:#fff;
+}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b8973a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  background-color:#faf8f4;
+  padding-right:40px;
+}
+textarea{height:90px;resize:none;line-height:1.7}
+
+/* メンバーズカード（リピーター時のみ） */
+.members-field{
+  display:none;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed var(--border);
+}
+.members-field.show{display:block}
+
+/* 商品行 */
+.item-row{
+  display:flex;gap:8px;align-items:flex-start;
+  margin-bottom:10px;
+}
+.item-row:last-child{margin-bottom:0}
+.item-select{flex:1}
+.item-count{width:90px;flex-shrink:0}
+.item-remove{
+  width:36px;height:36px;
+  border:1px solid var(--border);
+  background:#fff;border-radius:4px;
+  color:#c0392b;font-size:16px;
+  cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:0;
+  -webkit-appearance:none;
+}
+.item-remove:active{background:#fdecea}
+
+/* 商品追加ボタン */
+.add-btn{
+  width:100%;margin-top:12px;
+  padding:12px;
+  background:#fff;
+  border:1.5px dashed var(--border);
+  border-radius:4px;
+  color:var(--gold);
+  font-size:12px;letter-spacing:0.15em;
+  cursor:pointer;font-family:'Noto Sans JP',sans-serif;
+  transition:all 0.2s;
+  -webkit-appearance:none;
+}
+.add-btn:active{background:var(--gold-pale);border-color:var(--gold)}
+
+/* 来店人数（同行者あり時） */
+.companion-fields{
+  display:none;
+  margin-top:14px;padding-top:14px;
+  border-top:1px dashed var(--border);
+}
+.companion-fields.show{display:block}
+
+/* 画像アップロード */
+.upload-wrap{
+  position:relative;border:1.5px dashed var(--border);
+  border-radius:4px;background:#faf8f4;overflow:hidden;
+  transition:border-color 0.2s,background 0.2s;
+}
+.upload-wrap.has-image{border-color:var(--gold);background:#fffdf7}
+.upload-inner{padding:30px 16px;text-align:center;pointer-events:none}
+.upload-icon{font-size:30px;display:block;margin-bottom:8px;opacity:0.5}
+.upload-text{font-size:13px;color:var(--gray)}
+.upload-hint{font-size:10px;color:#b0a898;margin-top:5px;letter-spacing:0.05em}
+.upload-wrap input[type="file"]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px;
+}
+#preview{
+  display:none;width:100%;max-height:220px;
+  object-fit:cover;border-radius:4px;margin-top:12px;
+}
+
+/* 送信ボタン */
+.submit-wrap{margin-top:24px}
+.submit-btn{
+  width:100%;padding:18px;
+  background:var(--dark);color:#fff;border:none;border-radius:4px;
+  font-size:13px;letter-spacing:0.28em;
+  font-family:'Noto Sans JP',sans-serif;font-weight:400;
+  cursor:pointer;position:relative;overflow:hidden;
+  -webkit-appearance:none;
+}
+.submit-btn::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));
+}
+.submit-btn:active{opacity:0.85;transform:scale(0.99)}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* 注意書き */
+.note-text{
+  text-align:center;font-size:10px;color:#b0a898;
+  letter-spacing:0.06em;line-height:1.9;margin-top:18px;padding:0 8px;
+}
+.note-text em{color:var(--gold);font-style:normal}
+
+/* 完了画面 */
+.success{
+  display:none;text-align:center;padding:80px 24px 60px;
+}
+.success-gem{font-size:48px;display:block;margin-bottom:24px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.success-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:300;letter-spacing:0.1em;
+  color:var(--dark);margin-bottom:14px;
+}
+.success-line{
+  width:40px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin:0 auto 18px;
+}
+.success-text{font-size:13px;color:var(--gray);line-height:2;letter-spacing:0.05em}
+
+/* ローディング */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(26,22,18,0.65);z-index:999;
+  align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.overlay.on{display:flex}
+.spinner{
+  width:38px;height:38px;
+  border:2px solid rgba(255,255,255,0.2);
+  border-top-color:var(--gold);border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.overlay-text{color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:0.2em}
+
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-eyebrow">Ginza Jewelry</div>
+    <h1>来店予約</h1>
+    <div class="header-sub">Store Appointment</div>
+  </div>
+</div>
+
+<!-- ようこそ -->
+<div class="welcome-bar" id="welcomeBar" style="display:none"></div>
+
+<!-- フォームエリア -->
+<div class="main" id="formArea">
+  <form id="form" novalidate>
+
+    <input type="hidden" name="lineUserId" id="lineUserIdInput" value="">
+
+    <!-- STEP 1 希望日時 -->
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-label">ご希望日時</div>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label>第1希望日時<span class="required">*</span></label>
+        <select name="date1" required id="date1Select">
+          <option value="">— 日付を選択 —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>第2希望日時</label>
+        <select name="date2" id="date2Select">
+          <option value="">— 日付を選択（任意）—</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STEP 2 お客様情報 -->
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-label">お客様情報</div>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label>お名前<span class="required">*</span></label>
+        <input type="text" name="name" placeholder="山田 花子" required>
+      </div>
+      <div class="field">
+        <label>電話番号<span class="required">*</span></label>
+        <input type="tel" name="tel" placeholder="090-0000-0000" required>
+      </div>
+      <div class="field">
+        <label>ご利用</label>
+        <select name="userType" id="userTypeSelect">
+          <option value="初めて">初めて</option>
+          <option value="リピーター">リピーター</option>
+        </select>
+      </div>
+      <!-- リピーター時のみ表示 -->
+      <div class="members-field" id="membersField">
+        <label>メンバーズカードNo.</label>
+        <input type="text" name="membersNo" placeholder="例：M-12345">
+      </div>
+    </div>
+
+    <!-- STEP 3 お持込商品 -->
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-label">お持込商品</div>
+    </div>
+    <div class="card">
+      <label style="margin-bottom:12px">商品カテゴリ・点数</label>
+      <div id="itemList">
+        <!-- 商品行（JS生成） -->
+      </div>
+      <button type="button" class="add-btn" id="addItemBtn">＋ 商品を追加する</button>
+    </div>
+
+    <!-- STEP 4 本人確認書類 -->
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-label">ご本人確認書類</div>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label>お持ちの書類<span class="required">*</span></label>
+        <select name="idDoc" required>
+          <option value="">— 選択してください —</option>
+          <option>運転免許証</option>
+          <option>マイナンバーカード</option>
+          <option>健康保険資格確認書（住所記載あり）</option>
+          <option>パスポート（住所記載あり）</option>
+          <option>その他</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STEP 5 ご来店人数 -->
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-label">ご来店人数</div>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label>ご来店人数</label>
+        <select name="visitors" id="visitorsSelect">
+          <option value="1">1名（本人のみ）</option>
+          <option value="2">2名</option>
+          <option value="3">3名</option>
+          <option value="4">4名以上</option>
+        </select>
+      </div>
+      <!-- 同行者あり時のみ表示 -->
+      <div class="companion-fields" id="companionFields">
+        <label>同行者のご関係</label>
+        <select name="companionRelation">
+          <option>配偶者・パートナー</option>
+          <option>家族</option>
+          <option>友人・知人</option>
+          <option>その他</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STEP 6 商品写真 -->
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-label">商品写真（任意）</div>
+    </div>
+    <div class="card">
+      <div class="upload-wrap" id="uploadWrap">
+        <input type="file" id="imageInput" accept="image/*">
+        <div class="upload-inner">
+          <span class="upload-icon" id="uploadIcon">📷</span>
+          <div class="upload-text" id="uploadText">タップして写真を選択</div>
+          <div class="upload-hint">全体・刻印・宝石アップなど</div>
+        </div>
+      </div>
+      <img id="preview">
+    </div>
+
+    <!-- STEP 7 備考 -->
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-label">備考</div>
+    </div>
+    <div class="card">
+      <div class="field">
+        <textarea name="note" placeholder="ご質問・ご要望などがあればお書きください"></textarea>
+      </div>
+    </div>
+
+    <div class="submit-wrap">
+      <button type="submit" class="submit-btn" id="submitBtn">来 店 予 約 を 送 信</button>
+    </div>
+
+    <div class="note-text">
+      予約申請後、<em>LINEにてご連絡</em>いたします。
+    </div>
+
+  </form>
+</div>
+
+<!-- 完了画面 -->
+<div class="success" id="successArea">
+  <span class="success-gem">💎</span>
+  <div class="success-title">ご予約ありがとうございます</div>
+  <div class="success-line"></div>
+  <div class="success-text">
+    予約申請を受け付けました。<br>
+    LINEにてご連絡いたします。<br>
+    しばらくお待ちください。
+  </div>
+</div>
+
+<!-- ローディング -->
+<div class="overlay" id="overlay">
+  <div class="spinner"></div>
+  <div class="overlay-text">送 信 中</div>
+</div>
+
+<script>
+
+// ============================================================
+// LIFF初期化 → LINEユーザーID・名前を取得
+// ============================================================
+const LIFF_ID = "2009409928-v9gbiwHE"
+
+let liffUserId   = ""
+let liffUserName = ""
+
+liff.init({ liffId: LIFF_ID })
+  .then(() => {
+    if (!liff.isLoggedIn()) {
+      liff.login()
+      return
+    }
+    return liff.getProfile()
+  })
+  .then(profile => {
+    if (!profile) return
+    liffUserId   = profile.userId
+    liffUserName = profile.displayName
+
+    // 名前をフォームに自動入力
+    const nameInput = document.querySelector("input[name='name']")
+    if (nameInput && !nameInput.value) {
+      nameInput.value = liffUserName
+    }
+
+    // ようこそ帯を表示
+    const welcomeBar = document.getElementById("welcomeBar")
+    if (welcomeBar) {
+      welcomeBar.innerHTML = '<strong>' + liffUserName + '</strong> 様、ようこそ'
+      welcomeBar.style.display = 'block'
+    }
+  })
+  .catch(err => {
+    console.error("LIFF初期化エラー:", err)
+  })
+
+
+// ============================================================
+// 日時セレクト生成（11:00〜18:30 / 30分刻み / 今日から14日間）
+// ============================================================
+function buildDateOptions() {
+  // 全スロット: 11:00〜18:30 / 30分刻み
+  const allSlots = []
+  for (let h = 11; h <= 18; h++) {
+    const mins = (h === 18) ? [0, 30] : [0, 30]
+    mins.forEach(m => {
+      allSlots.push({ h, m, str: String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') })
+    })
+  }
+
+  const now      = new Date()
+  const weekday  = ['日','月','火','水','木','金','土']
+  const options  = ['<option value="">— 日付を選択 —</option>']
+
+  // 当日 + 14日間（合計15日）
+  for (let d = 0; d <= 14; d++) {
+    const date = new Date(now)
+    date.setDate(now.getDate() + d)
+
+    const yyyy    = date.getFullYear()
+    const mm      = date.getMonth() + 1
+    const dd      = date.getDate()
+    const wd      = weekday[date.getDay()]
+    const dateStr = mm + '月' + dd + '日（' + wd + '）'
+    const isToday = (d === 0)
+
+    // 今日の場合は「現在時刻 + 1時間」より後のスロットのみ表示
+    const cutoff = isToday
+      ? new Date(now.getTime() + 60 * 60 * 1000)  // 1時間後
+      : null
+
+    allSlots.forEach(slot => {
+      if (isToday) {
+        const slotTime = new Date(yyyy, mm - 1, dd, slot.h, slot.m)
+        if (slotTime <= cutoff) return  // 1時間以内のスロットはスキップ
+      }
+      const val = yyyy + '-' +
+        String(mm).padStart(2,'0') + '-' +
+        String(dd).padStart(2,'0') + 'T' + slot.str
+      options.push('<option value="' + val + '">' + dateStr + ' ' + slot.str + '</option>')
+    })
+  }
+  return options.join('')
+}
+
+const slotOptions = buildDateOptions()
+document.getElementById("date1Select").innerHTML = slotOptions
+document.getElementById("date2Select").innerHTML = slotOptions.replace(
+  '— 日付を選択 —', '— 日付を選択（任意）—'
+)
+
+
+// ============================================================
+// リピーター → メンバーズカード表示
+// ============================================================
+document.getElementById("userTypeSelect").addEventListener("change", function() {
+  const f = document.getElementById("membersField")
+  f.classList.toggle("show", this.value === "リピーター")
+})
+
+
+// ============================================================
+// 来店人数 → 同行者フィールド表示
+// ============================================================
+document.getElementById("visitorsSelect").addEventListener("change", function() {
+  const f = document.getElementById("companionFields")
+  f.classList.toggle("show", this.value !== "1")
+})
+
+
+// ============================================================
+// 商品行の追加・削除
+// ============================================================
+const CATEGORIES = ['ジュエリー','コイン','インゴット（バー）','時計','バッグ','その他']
+const COUNTS     = ['1点','2点','3点','4点','5点以上']
+
+function createItemRow(index) {
+  const div = document.createElement("div")
+  div.className = "item-row"
+  div.dataset.index = index
+
+  const catSel = document.createElement("select")
+  catSel.name = "item_cat_" + index
+  catSel.className = "item-select"
+  CATEGORIES.forEach(c => {
+    const o = document.createElement("option")
+    o.value = c; o.textContent = c
+    catSel.appendChild(o)
+  })
+
+  const cntSel = document.createElement("select")
+  cntSel.name = "item_cnt_" + index
+  cntSel.className = "item-count"
+  COUNTS.forEach(c => {
+    const o = document.createElement("option")
+    o.value = c; o.textContent = c
+    cntSel.appendChild(o)
+  })
+
+  const removeBtn = document.createElement("button")
+  removeBtn.type = "button"
+  removeBtn.className = "item-remove"
+  removeBtn.textContent = "✕"
+  removeBtn.addEventListener("click", function() {
+    div.remove()
+    updateRemoveButtons()
+  })
+
+  div.appendChild(catSel)
+  div.appendChild(cntSel)
+  div.appendChild(removeBtn)
+  return div
+}
+
+function updateRemoveButtons() {
+  const rows = document.querySelectorAll(".item-row")
+  rows.forEach(r => {
+    r.querySelector(".item-remove").style.visibility =
+      rows.length > 1 ? "visible" : "hidden"
+  })
+}
+
+let itemIndex = 0
+function addItem() {
+  const list = document.getElementById("itemList")
+  list.appendChild(createItemRow(itemIndex++))
+  updateRemoveButtons()
+}
+
+// 初期1行
+addItem()
+
+document.getElementById("addItemBtn").addEventListener("click", addItem)
+
+
+// ============================================================
+// 画像プレビュー
+// ============================================================
+const imageInput = document.getElementById("imageInput")
+const preview    = document.getElementById("preview")
+const uploadWrap = document.getElementById("uploadWrap")
+
+imageInput.addEventListener("change", function(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  preview.src = URL.createObjectURL(file)
+  preview.style.display = "block"
+  uploadWrap.classList.add("has-image")
+  document.getElementById("uploadIcon").textContent = "✅"
+  document.getElementById("uploadText").textContent = file.name
+})
+
+
+// ============================================================
+// フォーム送信
+// ============================================================
+const form      = document.getElementById("form")
+const overlay   = document.getElementById("overlay")
+const submitBtn = document.getElementById("submitBtn")
+
+form.addEventListener("submit", async function(e) {
+  e.preventDefault()
+
+  // バリデーション
+  if (!form.date1.value)  { alert("第1希望日時を選択してください"); return }
+  if (!form.name.value.trim()) { alert("お名前を入力してください"); return }
+  if (!form.tel.value.trim())  { alert("電話番号を入力してください"); return }
+  if (!form.idDoc.value)  { alert("ご本人確認書類を選択してください"); return }
+
+  overlay.classList.add("on")
+  submitBtn.disabled = true
+
+  const formData = new FormData(form)
+  const data     = Object.fromEntries(formData)
+
+  // LIFFで取得したユーザーIDをセット
+  data.lineUserId = liffUserId
+
+  // 商品リストをまとめる
+  const itemRows = document.querySelectorAll(".item-row")
+  const items = []
+  itemRows.forEach(row => {
+    const cat = row.querySelector("select[name^='item_cat']").value
+    const cnt = row.querySelector("select[name^='item_cnt']").value
+    items.push(cat + ' ' + cnt)
+  })
+  data.items = items.join('、')
+
+  // 画像
+  const file = imageInput.files[0]
+  if (file) {
+    const base64  = await toBase64(file)
+    data.image     = base64.split(",")[1]
+    data.imageType = file.type
+  }
+
+  // GASにfetchで送信
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbyfed2jcGYIhOeJ9UJW1oMTFUeMi_h7RR2rr3i8vKAllGeuoWlIDC0r5lFcwFxPIQE/exec"
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: { "Content-Type": "text/plain" }
+    })
+    const text = await res.text()
+    overlay.classList.remove("on")
+    document.getElementById("formArea").style.display   = "none"
+    document.getElementById("successArea").style.display = "block"
+  } catch(err) {
+    overlay.classList.remove("on")
+    submitBtn.disabled = false
+    alert("送信に失敗しました。もう一度お試しください。")
+  }
+})
+
+function toBase64(file) {
+  return new Promise(function(resolve, reject) {
+    const reader = new FileReader()
+    reader.onload  = function() { resolve(reader.result) }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+</script>
+</body>
+</html>
