@@ -230,6 +230,12 @@ textarea{height:90px;resize:none;line-height:1.7}
           <option value="">— 日付を選択（任意）—</option>
         </select>
       </div>
+      <div class="field">
+        <label>第3希望日時</label>
+        <select name="date3" id="date3Select">
+          <option value="">— 日付を選択（任意）—</option>
+        </select>
+      </div>
     </div>
 
     <!-- STEP 2 お客様情報 -->
@@ -446,6 +452,7 @@ function buildDateOptions(placeholder) {
 
 document.getElementById("date1Select").innerHTML = buildDateOptions("— 日付を選択 —")
 document.getElementById("date2Select").innerHTML = buildDateOptions("— 日付を選択（任意）—")
+document.getElementById("date3Select").innerHTML = buildDateOptions("— 日付を選択（任意）—")
 document.getElementById("date3Select").innerHTML = buildDateOptions("— 日付を選択（任意）—")
 
 
