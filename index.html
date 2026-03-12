@@ -107,10 +107,14 @@ textarea{height:90px;resize:none;line-height:1.7}
 .members-field{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
 .members-field.show{display:block}
 
-.item-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:10px}
+/* 商品行：共通2段レイアウト */
+.item-row{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
 .item-row:last-child{margin-bottom:0}
-.item-select{flex:1}
-.item-count{width:90px;flex-shrink:0}
+.item-row-top{display:flex;gap:8px;align-items:center}
+.item-row-bottom{display:flex;gap:6px;align-items:center;padding-left:2px}
+.item-select{flex:1;min-width:0}
+.item-sub-label{font-size:11px;color:#9b9490;flex-shrink:0;white-space:nowrap}
+.item-count{width:88px;flex-shrink:0}
 .item-remove{
   width:36px;height:36px;border:1px solid var(--border);
   background:#fff;border-radius:4px;color:#c0392b;font-size:16px;
@@ -208,7 +212,6 @@ textarea{height:90px;resize:none;line-height:1.7}
 }
 
 /* 重量入力 */
-.weight-input-wrap{display:flex;gap:6px;align-items:center}
 .weight-input{
   width:80px;flex-shrink:0;padding:12px 10px;
   background:#faf8f4;border:1px solid var(--border);
@@ -217,13 +220,6 @@ textarea{height:90px;resize:none;line-height:1.7}
 }
 .weight-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,151,58,0.1);background:#fff}
 .weight-unit{font-size:12px;color:var(--gray)}
-
-/* グループB専用：品名フルwidth + 重量を下段に */
-.item-row-b{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.item-row-b:last-child{margin-bottom:0}
-.item-row-b .item-row-b-top{display:flex;gap:8px;align-items:center}
-.item-row-b .item-select{flex:1}
-.item-row-b .item-row-b-bottom{display:flex;gap:8px;align-items:center;padding-left:2px}
 
 /* 商品グループラベル */
 .item-group-label{
@@ -383,12 +379,7 @@ textarea{height:90px;resize:none;line-height:1.7}
           <option>マイナンバーカード</option>
           <option>健康保険資格確認書（住所記載あり）</option>
           <option>パスポート（住所記載あり）</option>
-          <option value="その他">その他</option>
         </select>
-      </div>
-      <div class="field" id="idDocOtherField" style="display:none;margin-top:12px">
-        <label>書類の種類をご記入ください<span class="required">*</span></label>
-        <input type="text" id="idDocOtherInput" placeholder="例：在留カード、住民票など">
       </div>
     </div>
 
@@ -597,23 +588,6 @@ document.getElementById("userTypeSelect").addEventListener("change", function() 
 
 
 // ============================================================
-// 本人確認書類「その他」→ テキスト入力欄を表示
-// ============================================================
-document.getElementById("idDocSelect").addEventListener("change", function() {
-  const otherField = document.getElementById("idDocOtherField")
-  const otherInput = document.getElementById("idDocOtherInput")
-  if (this.value === "その他") {
-    otherField.style.display = "block"
-    otherInput.required = true
-  } else {
-    otherField.style.display = "none"
-    otherInput.required = false
-    otherInput.value = ""
-  }
-})
-
-
-// ============================================================
 // 来店人数 → 同行者
 // ============================================================
 document.getElementById("visitorsSelect").addEventListener("change", function() {
@@ -643,25 +617,40 @@ function createItemRowA(index) {
   const div = document.createElement("div")
   div.className = "item-row"
 
+  // 上段：品名 + 削除ボタン
+  const top = document.createElement("div")
+  top.className = "item-row-top"
+
   const catSel = document.createElement("select")
-  catSel.name  = "item_cat_" + index
+  catSel.name = "item_cat_" + index
   catSel.className = "item-select"
   CATS_A.forEach(c => {
     const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o)
-  })
-
-  const cntSel = document.createElement("select")
-  cntSel.name  = "item_cnt_" + index
-  cntSel.className = "item-count"
-  COUNTS.forEach(c => {
-    const o = document.createElement("option"); o.value = c; o.textContent = c; cntSel.appendChild(o)
   })
 
   const rm = document.createElement("button")
   rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
   rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListA") })
 
-  div.appendChild(catSel); div.appendChild(cntSel); div.appendChild(rm)
+  top.appendChild(catSel); top.appendChild(rm)
+
+  // 下段：点数
+  const bottom = document.createElement("div")
+  bottom.className = "item-row-bottom"
+
+  const subLabel = document.createElement("span")
+  subLabel.className = "item-sub-label"
+  subLabel.textContent = "点数："
+
+  const cntSel = document.createElement("select")
+  cntSel.name = "item_cnt_" + index
+  cntSel.className = "item-count"
+  COUNTS.forEach(c => {
+    const o = document.createElement("option"); o.value = c; o.textContent = c; cntSel.appendChild(o)
+  })
+
+  bottom.appendChild(subLabel); bottom.appendChild(cntSel)
+  div.appendChild(top); div.appendChild(bottom)
   return div
 }
 
@@ -681,14 +670,14 @@ const CATS_B = ['SGCバー','インゴット（延べ棒）','コイン']
 let itemIndexB = 0
 function createItemRowB(index) {
   const div = document.createElement("div")
-  div.className = "item-row-b"
+  div.className = "item-row"
 
-  // 上段：品名セレクト + 削除ボタン
-  const topRow = document.createElement("div")
-  topRow.className = "item-row-b-top"
+  // 上段：品名 + 削除ボタン
+  const top = document.createElement("div")
+  top.className = "item-row-top"
 
   const catSel = document.createElement("select")
-  catSel.name  = "item_cat_b_" + index
+  catSel.name = "item_cat_b_" + index
   catSel.className = "item-select"
   CATS_B.forEach(c => {
     const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o)
@@ -698,30 +687,29 @@ function createItemRowB(index) {
   rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
   rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListB") })
 
-  topRow.appendChild(catSel); topRow.appendChild(rm)
+  top.appendChild(catSel); top.appendChild(rm)
 
   // 下段：重量入力
-  const bottomRow = document.createElement("div")
-  bottomRow.className = "item-row-b-bottom"
+  const bottom = document.createElement("div")
+  bottom.className = "item-row-bottom"
 
-  const wLabel = document.createElement("span")
-  wLabel.style.cssText = "font-size:11px;color:#9b9490;flex-shrink:0;white-space:nowrap"
-  wLabel.textContent = "重量："
+  const subLabel = document.createElement("span")
+  subLabel.className = "item-sub-label"
+  subLabel.textContent = "重量："
 
   const wInput = document.createElement("input")
-  wInput.type  = "text"
-  wInput.name  = "item_weight_" + index
-  wInput.className  = "weight-input"
-  wInput.placeholder = "数量または不明"
-  wInput.inputMode   = "decimal"
+  wInput.type = "text"
+  wInput.name = "item_weight_" + index
+  wInput.className = "weight-input"
+  wInput.placeholder = "数値または不明"
+  wInput.inputMode = "decimal"
 
   const wUnit = document.createElement("span")
-  wUnit.className   = "weight-unit"
+  wUnit.className = "weight-unit"
   wUnit.textContent = "g"
 
-  bottomRow.appendChild(wLabel); bottomRow.appendChild(wInput); bottomRow.appendChild(wUnit)
-
-  div.appendChild(topRow); div.appendChild(bottomRow)
+  bottom.appendChild(subLabel); bottom.appendChild(wInput); bottom.appendChild(wUnit)
+  div.appendChild(top); div.appendChild(bottom)
   return div
 }
 
@@ -734,7 +722,7 @@ document.getElementById("addItemBtnB").addEventListener("click", addItemB)
 
 
 function updateRemoveBtns(listId) {
-  const rows = document.querySelectorAll("#" + listId + " .item-row, #" + listId + " .item-row-b")
+  const rows = document.querySelectorAll("#" + listId + " .item-row")
   rows.forEach(r => {
     r.querySelector(".item-remove").style.visibility = rows.length > 1 ? "visible" : "hidden"
   })
@@ -866,12 +854,6 @@ form.addEventListener("submit", async function(e) {
   if (!form.name.value.trim()) { alert("お名前を入力してください"); return }
   if (!form.tel.value.trim())  { alert("電話番号を入力してください"); return }
   if (!form.idDoc.value)       { alert("ご本人確認書類を選択してください"); return }
-  if (form.idDoc.value === "その他") {
-    const otherVal = document.getElementById("idDocOtherInput").value.trim()
-    if (!otherVal) { alert("書類の種類をご記入ください"); return }
-    // 送信データにはテキスト内容を使う
-    form.idDoc.value = "その他：" + otherVal
-  }
 
   overlay.classList.add("on")
   submitBtn.disabled = true
@@ -885,13 +867,13 @@ form.addEventListener("submit", async function(e) {
   // 商品リストをまとめる（グループA：点数、グループB：重量）
   const items = []
   document.querySelectorAll("#itemListA .item-row").forEach(row => {
-    const catSel = row.querySelector("select")
-    const cntSel = row.querySelectorAll("select")[1]
+    const catSel = row.querySelector(".item-select")
+    const cntSel = row.querySelector(".item-count")
     if (catSel && cntSel) items.push(catSel.value + " " + cntSel.value)
   })
-  document.querySelectorAll("#itemListB .item-row-b").forEach(row => {
-    const catSel = row.querySelector("select")
-    const wInput = row.querySelector("input[type='text']")
+  document.querySelectorAll("#itemListB .item-row").forEach(row => {
+    const catSel = row.querySelector(".item-select")
+    const wInput = row.querySelector(".weight-input")
     const weight = wInput ? wInput.value.trim() : ""
     if (catSel) items.push(catSel.value + " " + (weight ? weight + "g" : "重量不明"))
   })
