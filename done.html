@@ -2,66 +2,61 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
 <title>完了</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html {
-  font-size: 20px;
-  -webkit-text-size-adjust: none;
-  text-size-adjust: none;
+  /* 2. 基本フォントサイズを16pxに設定（ブラウザ標準に合わせる） */
+  font-size: 16px; 
+  -webkit-text-size-adjust: 100%;
 }
 body {
-  font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-family: -apple-system, "BlinkMacSystemFont", "Hiragino Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: #f9f6f0;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 24px;
-  /* LINE IABのフォント縮小を防ぐ */
-  zoom: 1;
+  /* 3. セーフエリア（iPhoneのノッチ部分）を考慮 */
+  padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
 }
 .box {
   background: #fff;
-  border-radius: 20px;
-  padding: 40px 28px;
+  border-radius: 24px;
+  /* 4. paddingをrem単位にし、画面幅に合わせて調整 */
+  padding: 3rem 1.5rem;
   text-align: center;
   width: 100%;
-  max-width: 480px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
-.icon { font-size: 4rem; margin-bottom: 1.2rem; display: block; line-height: 1; }
-h2 { font-size: 1.4rem; font-weight: 700; color: #1a1612; margin-bottom: 1rem; }
+.icon { font-size: 5rem; margin-bottom: 1.5rem; display: block; line-height: 1; }
+h2 { font-size: 1.5rem; font-weight: 700; color: #1a1612; margin-bottom: 1.2rem; }
 .info {
-  font-size: 1rem; color: #888; line-height: 2.4;
-  padding: 1rem 1.2rem; background: #f9f6f0;
-  border-radius: 12px; margin-bottom: 1rem;
+  /* 5. 文字の視認性を高めるため背景色と余白を調整 */
+  font-size: 1.1rem; color: #555; line-height: 1.8;
+  padding: 1.5rem 1rem; background: #fdfbf7;
+  border: 1px solid #f0ede8;
+  border-radius: 16px; margin-bottom: 1.5rem;
 }
-.gold { color: #b8973a; font-weight: 700; font-size: 1.1rem; }
-.staff { color: #1a1612; font-weight: 600; }
-.note { font-size: 0.85rem; color: #bbb; line-height: 1.8; }
+.gold { color: #b8973a; font-weight: 700; font-size: 1.3rem; display: block; margin-bottom: 0.3rem; }
+.staff { color: #1a1612; font-weight: 600; font-size: 0.95rem; }
+.note { font-size: 0.9rem; color: #888; margin-top: 1rem; }
 .badge {
-  display: inline-block; padding: 0.5rem 1.2rem;
-  border-radius: 20px; background: #f0ede8;
-  color: #6b6560; font-size: 0.95rem;
-  margin-bottom: 1.2rem; font-weight: 500;
+  display: inline-block; padding: 0.6rem 1.5rem;
+  border-radius: 30px; background: #f0ede8;
+  color: #6b6560; font-size: 1rem;
+  margin-bottom: 1.5rem; font-weight: 600;
 }
-p { font-size: 1rem; color: #aaa; line-height: 2.2; }
+p { font-size: 1.1rem; color: #777; line-height: 1.6; }
 </style>
 </head>
 <body>
 <div class="box" id="content">読み込み中...</div>
+
 <script>
-// LINE IAB: documentのfont-sizeを直接設定して強制適用
-document.documentElement.style.fontSize = '20px';
-
-// viewportを再設定
-var meta = document.querySelector('meta[name=viewport]');
-if (meta) {
-  meta.content = 'width=device-width, initial-scale=1.0, minimum-scale=1.0';
-}
-
+// JSによるフォントサイズ固定は削除（CSSで管理するのがモダンな手法です）
 const p      = new URLSearchParams(location.search)
 const type   = p.get("type")   || ""
 const title  = p.get("title")  || ""
@@ -77,14 +72,16 @@ if (type === "success") {
   box.innerHTML =
     '<span class="icon">🎉</span>' +
     '<h2>' + title + '</h2>' +
-    '<div class="info"><span class="gold">' + name + '</span> 様<br>' + date + staffLine + '</div>' +
+    '<div class="info"><span class="gold">' + name + '</span> 様' + 
+    '<div style="font-size:0.9rem; color:#999; margin-top:8px;">' + date + '</div>' + 
+    staffLine + '</div>' +
     '<p class="note">顧客のLINEに通知しました</p>'
 } else if (type === "done") {
   box.innerHTML =
     '<span class="icon">⚠️</span>' +
     '<h2>すでに処理済みです</h2>' +
     '<div class="badge">' + status + '</div>' +
-    '<p>' + name + ' 様<br>' + date + '</p>'
+    '<p><strong>' + name + '</strong> 様<br><small>' + date + '</small></p>'
 } else {
   box.innerHTML = '<p>不明なページです</p>'
 }
