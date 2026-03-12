@@ -2,14 +2,22 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=375,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>完了</title>
+<script>
+// LINE IAB対応：強制的にviewportをスマホサイズに設定
+(function() {
+  var w = window.innerWidth || document.documentElement.clientWidth || 375;
+  var scale = w / 390;
+  var meta = document.querySelector('meta[name="viewport"]');
+  meta.setAttribute('content',
+    'width=390,initial-scale=' + scale + ',maximum-scale=' + scale + ',user-scalable=no'
+  );
+})();
+</script>
 <style>
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
+html { font-size: 16px; }
+html, body { height: 100%; margin: 0; padding: 0; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
   font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
@@ -26,11 +34,10 @@ body {
   padding: 40px 28px;
   text-align: center;
   width: 100%;
-  max-width: 400px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.10);
 }
 .icon { font-size: 64px; margin-bottom: 20px; display: block; line-height: 1; }
-h2 { font-size: 22px; font-weight: 700; color: #1a1612; margin-bottom: 18px; letter-spacing: 0.02em; }
+h2 { font-size: 22px; font-weight: 700; color: #1a1612; margin-bottom: 18px; }
 .info {
   font-size: 16px; color: #888; line-height: 2.4;
   padding: 16px 20px; background: #f9f6f0;
@@ -38,9 +45,7 @@ h2 { font-size: 22px; font-weight: 700; color: #1a1612; margin-bottom: 18px; let
 }
 .gold { color: #b8973a; font-weight: 700; font-size: 18px; }
 .staff { color: #1a1612; font-weight: 600; }
-.note { font-size: 13px; color: #bbb; line-height: 1.8; }
-
-/* すでに処理済み */
+.note { font-size: 14px; color: #bbb; line-height: 1.8; }
 .badge {
   display: inline-block; padding: 8px 20px;
   border-radius: 20px; background: #f0ede8;
@@ -52,15 +57,14 @@ p { font-size: 16px; color: #aaa; line-height: 2.2; }
 </head>
 <body>
 <div class="box" id="content">読み込み中...</div>
-
 <script>
-const p = new URLSearchParams(location.search)
-const type   = p.get("type")   // "success" or "done"
-const title  = decodeURIComponent(p.get("title")  || "")
-const name   = decodeURIComponent(p.get("name")   || "")
-const date   = decodeURIComponent(p.get("date")   || "")
-const staff  = decodeURIComponent(p.get("staff")  || "")
-const status = decodeURIComponent(p.get("status") || "")
+const p      = new URLSearchParams(location.search)
+const type   = p.get("type")   || ""
+const title  = p.get("title")  || ""
+const name   = p.get("name")   || ""
+const date   = p.get("date")   || ""
+const staff  = p.get("staff")  || ""
+const status = p.get("status") || ""
 
 const box = document.getElementById("content")
 
