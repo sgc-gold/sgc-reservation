@@ -40,30 +40,18 @@ const originalSearch = window.location.search
 const originalHash   = window.location.hash
 
 function extractTarget() {
-  // 1. 通常のクエリパラメータ
-  const p = new URLSearchParams(originalSearch)
-  if (p.get("target")) return p.get("target")
-
-  // 2. ハッシュ内
+  // 1. ハッシュ内（LIFFはハッシュを消さない）
   const h = new URLSearchParams(originalHash.replace("#",""))
   if (h.get("target")) return h.get("target")
 
-  // 3. liff.state（LIFF SDKがクエリを書き換えた場合）
-  try {
-    const state = new URLSearchParams(originalSearch).get("liff.state")
-    if (state) {
-      const sp = new URLSearchParams(decodeURIComponent(state))
-      if (sp.get("target")) return sp.get("target")
-    }
-  } catch(e) {}
+  // 2. 通常のクエリパラメータ
+  const p = new URLSearchParams(originalSearch)
+  if (p.get("target")) return p.get("target")
 
-  // 4. 現在のURLのliff.stateを再確認
+  // 3. 現在のハッシュを再確認（初期化後に変わっている場合）
   try {
-    const cur = new URLSearchParams(window.location.search).get("liff.state")
-    if (cur) {
-      const sp = new URLSearchParams(decodeURIComponent(cur))
-      if (sp.get("target")) return sp.get("target")
-    }
+    const curHash = new URLSearchParams(window.location.hash.replace("#",""))
+    if (curHash.get("target")) return curHash.get("target")
   } catch(e) {}
 
   return ""
