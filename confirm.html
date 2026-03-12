@@ -16,82 +16,101 @@ body{
   text-align:center;max-width:320px;width:100%;
   box-shadow:0 4px 20px rgba(0,0,0,0.08);
 }
-.loading{font-size:13px;color:#aaa;letter-spacing:0.05em}
 .spinner{
   width:32px;height:32px;border:2px solid #e8e0d0;
   border-top-color:#b8973a;border-radius:50%;
   animation:spin 0.8s linear infinite;margin:0 auto 16px;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-.err{font-size:13px;color:#c0392b;line-height:1.8}
+.msg{font-size:13px;color:#888;line-height:1.8;white-space:pre-wrap}
+.err{font-size:13px;color:#c0392b;line-height:1.8;white-space:pre-wrap}
+.name{font-size:15px;color:#1a1612;font-weight:600;margin-bottom:8px}
+.manual{display:none;margin-top:16px}
+.manual input{
+  width:100%;padding:10px 12px;border:1px solid #d4c9b0;border-radius:8px;
+  font-size:14px;font-family:inherit;outline:none;
+}
+.manual input:focus{border-color:#b8973a}
+.manual button{
+  width:100%;margin-top:10px;padding:12px;
+  background:#2d7a3c;color:#fff;border:none;border-radius:8px;
+  font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;
+}
 </style>
 </head>
 <body>
 <div class="box">
   <div class="spinner" id="spinner"></div>
-  <div class="loading" id="msg">認証中...</div>
+  <div class="msg" id="msg">認証中...</div>
+  <div class="manual" id="manual">
+    <input id="nameInput" type="text" placeholder="お名前を入力してください">
+    <button onclick="submitWithName()">確認画面へ進む</button>
+  </div>
 </div>
 
 <script>
 const LIFF_ID = "2009409928-oFHGILyB"
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyfed2jcGYIhOeJ9UJW1oMTFUeMi_h7RR2rr3i8vKAllGeuoWlIDC0r5lFcwFxPIQE/exec"
 
-// LIFF初期化前にURLを保存
-const originalSearch = window.location.search
-const originalHash   = window.location.hash
+let sid = ""
 
-function extractTarget() {
-  // 1. ハッシュ内（LIFFはハッシュを消さない）
-  const h = new URLSearchParams(originalHash.replace("#",""))
-  if (h.get("target")) return h.get("target")
+function goToGas(staffName) {
+  if (!sid) { showError("セッションIDが取得できませんでした"); return }
+  location.href = GAS_URL + "?sid=" + encodeURIComponent(sid) + "&staffName=" + encodeURIComponent(staffName)
+}
 
-  // 2. 通常のクエリパラメータ
-  const p = new URLSearchParams(originalSearch)
-  if (p.get("target")) return p.get("target")
+function submitWithName() {
+  const name = document.getElementById("nameInput").value.trim()
+  if (!name) { alert("お名前を入力してください"); return }
+  goToGas(name)
+}
 
-  // 3. 現在のハッシュを再確認（初期化後に変わっている場合）
-  try {
-    const curHash = new URLSearchParams(window.location.hash.replace("#",""))
-    if (curHash.get("target")) return curHash.get("target")
-  } catch(e) {}
+function showError(msg) {
+  document.getElementById("spinner").style.display = "none"
+  document.getElementById("msg").className = "err"
+  document.getElementById("msg").textContent = msg
+}
 
-  return ""
+function showManual() {
+  document.getElementById("spinner").style.display = "none"
+  document.getElementById("msg").className = "msg"
+  document.getElementById("msg").textContent = "お名前を入力して進んでください。"
+  document.getElementById("manual").style.display = "block"
 }
 
 liff.init({ liffId: LIFF_ID })
   .then(function() {
-    if (!liff.isLoggedIn()) {
-      liff.login()
+    // liff.getContext().liffState からsidを取得
+    try {
+      const ctx = liff.getContext()
+      if (ctx && ctx.liffState) {
+        const params = new URLSearchParams(decodeURIComponent(ctx.liffState))
+        sid = params.get("sid") || ""
+      }
+    } catch(e) {}
+
+    // 現在のURLのクエリからも試みる
+    if (!sid) {
+      sid = new URLSearchParams(window.location.search).get("sid") || ""
+    }
+
+    if (!sid) {
+      showError("セッションIDが見つかりません\nもう一度ボタンをタップしてください\n\nstate:" + JSON.stringify(liff.getContext()))
       return
     }
+
+    if (!liff.isLoggedIn()) { liff.login(); return }
     return liff.getProfile()
   })
   .then(function(profile) {
     if (!profile) return
-
     const staffName = profile.displayName
-    document.getElementById("msg").textContent = staffName + " さんとして認証完了"
-
-    const target = extractTarget()
-
-    // デバッグ：取得できたURLを表示
-    if (!target) {
-      document.getElementById("spinner").style.display = "none"
-      document.getElementById("msg").className = "err"
-      document.getElementById("msg").textContent =
-        "パラメータが見つかりません\n" +
-        "search: " + originalSearch + "\n" +
-        "hash: " + originalHash
-      return
-    }
-
-    const url = target + "&staffName=" + encodeURIComponent(staffName)
-    setTimeout(function() { location.href = url }, 600)
-  })
-  .catch(function(err) {
     document.getElementById("spinner").style.display = "none"
-    document.getElementById("msg").className = "err"
-    document.getElementById("msg").textContent = "認証エラー: " + err.message
+    document.getElementById("msg").className = "name"
+    document.getElementById("msg").textContent = staffName + " さん"
+    setTimeout(function() { goToGas(staffName) }, 800)
   })
+  .catch(function(err) { showManual() })
 </script>
 </body>
 </html>
