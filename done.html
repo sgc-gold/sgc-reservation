@@ -2,23 +2,15 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
 <title>完了</title>
-<script>
-// LINE IAB対応：強制的にviewportをスマホサイズに設定
-(function() {
-  var w = window.innerWidth || document.documentElement.clientWidth || 375;
-  var scale = w / 390;
-  var meta = document.querySelector('meta[name="viewport"]');
-  meta.setAttribute('content',
-    'width=390,initial-scale=' + scale + ',maximum-scale=' + scale + ',user-scalable=no'
-  );
-})();
-</script>
 <style>
-html { font-size: 30px; }
-html, body { height: 100%; margin: 0; padding: 0; }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  font-size: 20px;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
 body {
   font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
   background: #f9f6f0;
@@ -27,6 +19,8 @@ body {
   justify-content: center;
   min-height: 100vh;
   padding: 24px;
+  /* LINE IABのフォント縮小を防ぐ */
+  zoom: 1;
 }
 .box {
   background: #fff;
@@ -34,30 +28,40 @@ body {
   padding: 40px 28px;
   text-align: center;
   width: 100%;
+  max-width: 480px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.10);
 }
-.icon { font-size: 64px; margin-bottom: 20px; display: block; line-height: 1; }
-h2 { font-size: 22px; font-weight: 700; color: #1a1612; margin-bottom: 18px; }
+.icon { font-size: 4rem; margin-bottom: 1.2rem; display: block; line-height: 1; }
+h2 { font-size: 1.4rem; font-weight: 700; color: #1a1612; margin-bottom: 1rem; }
 .info {
-  font-size: 16px; color: #888; line-height: 2.4;
-  padding: 16px 20px; background: #f9f6f0;
-  border-radius: 12px; margin-bottom: 18px;
+  font-size: 1rem; color: #888; line-height: 2.4;
+  padding: 1rem 1.2rem; background: #f9f6f0;
+  border-radius: 12px; margin-bottom: 1rem;
 }
-.gold { color: #b8973a; font-weight: 700; font-size: 18px; }
+.gold { color: #b8973a; font-weight: 700; font-size: 1.1rem; }
 .staff { color: #1a1612; font-weight: 600; }
-.note { font-size: 14px; color: #bbb; line-height: 1.8; }
+.note { font-size: 0.85rem; color: #bbb; line-height: 1.8; }
 .badge {
-  display: inline-block; padding: 8px 20px;
+  display: inline-block; padding: 0.5rem 1.2rem;
   border-radius: 20px; background: #f0ede8;
-  color: #6b6560; font-size: 15px;
-  margin-bottom: 20px; font-weight: 500;
+  color: #6b6560; font-size: 0.95rem;
+  margin-bottom: 1.2rem; font-weight: 500;
 }
-p { font-size: 16px; color: #aaa; line-height: 2.2; }
+p { font-size: 1rem; color: #aaa; line-height: 2.2; }
 </style>
 </head>
 <body>
 <div class="box" id="content">読み込み中...</div>
 <script>
+// LINE IAB: documentのfont-sizeを直接設定して強制適用
+document.documentElement.style.fontSize = '20px';
+
+// viewportを再設定
+var meta = document.querySelector('meta[name=viewport]');
+if (meta) {
+  meta.content = 'width=device-width, initial-scale=1.0, minimum-scale=1.0';
+}
+
 const p      = new URLSearchParams(location.search)
 const type   = p.get("type")   || ""
 const title  = p.get("title")  || ""
@@ -69,16 +73,11 @@ const status = p.get("status") || ""
 const box = document.getElementById("content")
 
 if (type === "success") {
-  const staffLine = staff
-    ? '<br><span class="staff">操作者：' + staff + '</span>'
-    : ''
+  const staffLine = staff ? '<br><span class="staff">操作者：' + staff + '</span>' : ''
   box.innerHTML =
     '<span class="icon">🎉</span>' +
     '<h2>' + title + '</h2>' +
-    '<div class="info">' +
-      '<span class="gold">' + name + '</span> 様<br>' +
-      date + staffLine +
-    '</div>' +
+    '<div class="info"><span class="gold">' + name + '</span> 様<br>' + date + staffLine + '</div>' +
     '<p class="note">顧客のLINEに通知しました</p>'
 } else if (type === "done") {
   box.innerHTML =
