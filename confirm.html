@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,"Noto Sans JP",sans-serif;
+  background:#f9f6f0;display:flex;align-items:center;
+  justify-content:center;min-height:100vh;padding:20px;
+}
+.box{
+  background:#fff;border-radius:12px;padding:28px 22px;
+  text-align:center;max-width:320px;width:100%;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
+}
+.loading{font-size:13px;color:#aaa;letter-spacing:0.05em}
+.spinner{
+  width:32px;height:32px;border:2px solid #e8e0d0;
+  border-top-color:#b8973a;border-radius:50%;
+  animation:spin 0.8s linear infinite;margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{font-size:13px;color:#c0392b;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="spinner" id="spinner"></div>
+  <div class="loading" id="msg">認証中...</div>
+</div>
+
+<script>
+const LIFF_ID = "2009409928-oFHGILyB"
+
+// URLパラメータからtarget（GASのURL）を取得
+function getParam(key) {
+  const params = new URLSearchParams(window.location.search)
+  return params.get(key) || ""
+}
+
+// LIFFのハッシュパラメータからも取得（LIFF SDKがURLを書き換える場合）
+function getLiffParam(key) {
+  const hash = window.location.hash.replace("#", "")
+  const params = new URLSearchParams(hash)
+  return params.get(key) || getParam(key)
+}
+
+liff.init({ liffId: LIFF_ID })
+  .then(function() {
+    if (!liff.isLoggedIn()) {
+      liff.login()
+      return
+    }
+    return liff.getProfile()
+  })
+  .then(function(profile) {
+    if (!profile) return
+
+    const staffName = profile.displayName
+    document.getElementById("msg").textContent = staffName + " さんとして認証完了"
+
+    // targetのGAS URLを取得
+    const target = getLiffParam("target")
+    if (!target) {
+      document.getElementById("spinner").style.display = "none"
+      document.getElementById("msg").className = "err"
+      document.getElementById("msg").textContent = "パラメータが見つかりません"
+      return
+    }
+
+    // staffNameを付加してGASの確認画面へリダイレクト
+    const url = target + "&staffName=" + encodeURIComponent(staffName)
+    setTimeout(function() { location.href = url }, 600)
+  })
+  .catch(function(err) {
+    document.getElementById("spinner").style.display = "none"
+    document.getElementById("msg").className = "err"
+    document.getElementById("msg").textContent = "認証に失敗しました。\nLINEアプリから開いてください。"
+  })
+</script>
+</body>
+</html>
