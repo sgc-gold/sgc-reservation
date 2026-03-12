@@ -210,13 +210,20 @@ textarea{height:90px;resize:none;line-height:1.7}
 /* 重量入力 */
 .weight-input-wrap{display:flex;gap:6px;align-items:center}
 .weight-input{
-  width:100px;flex-shrink:0;padding:14px 10px;
+  width:80px;flex-shrink:0;padding:12px 10px;
   background:#faf8f4;border:1px solid var(--border);
   border-radius:4px;font-size:16px;color:var(--dark);
   font-family:'Noto Sans JP',sans-serif;outline:none;
 }
 .weight-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,151,58,0.1);background:#fff}
 .weight-unit{font-size:12px;color:var(--gray)}
+
+/* グループB専用：品名フルwidth + 重量を下段に */
+.item-row-b{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.item-row-b:last-child{margin-bottom:0}
+.item-row-b .item-row-b-top{display:flex;gap:8px;align-items:center}
+.item-row-b .item-select{flex:1}
+.item-row-b .item-row-b-bottom{display:flex;gap:8px;align-items:center;padding-left:2px}
 
 /* 商品グループラベル */
 .item-group-label{
@@ -341,7 +348,7 @@ textarea{height:90px;resize:none;line-height:1.7}
       </div>
       <div class="members-field" id="membersField">
         <label>メンバーズカードNo.</label>
-        <input type="text" name="membersNo" placeholder="例：M-12345">
+        <input type="text" name="membersNo" placeholder="例：M1234">
       </div>
     </div>
 
@@ -370,14 +377,18 @@ textarea{height:90px;resize:none;line-height:1.7}
     <div class="card">
       <div class="field">
         <label>お持ちの書類<span class="required">*</span></label>
-        <select name="idDoc" required>
+        <select name="idDoc" id="idDocSelect" required>
           <option value="">— 選択してください —</option>
           <option>運転免許証</option>
           <option>マイナンバーカード</option>
           <option>健康保険資格確認書（住所記載あり）</option>
           <option>パスポート（住所記載あり）</option>
-          <option>その他</option>
+          <option value="その他">その他</option>
         </select>
+      </div>
+      <div class="field" id="idDocOtherField" style="display:none;margin-top:12px">
+        <label>書類の種類をご記入ください<span class="required">*</span></label>
+        <input type="text" id="idDocOtherInput" placeholder="例：在留カード、住民票など">
       </div>
     </div>
 
@@ -461,7 +472,7 @@ textarea{height:90px;resize:none;line-height:1.7}
     </div>
 
     <!-- 注意事項（送信ボタン直前） -->
-    <div class="caution-box">
+    <div class="caution-box" style="margin-top:24px">
       <div class="caution-title">— ご予約前にご確認ください —</div>
       <div class="caution-item">ご予約後、LINEにて日時確定のご連絡をいたします。</div>
       <div class="caution-item">ご希望のお支払い方法に添えない場合がございます。</div>
@@ -586,6 +597,23 @@ document.getElementById("userTypeSelect").addEventListener("change", function() 
 
 
 // ============================================================
+// 本人確認書類「その他」→ テキスト入力欄を表示
+// ============================================================
+document.getElementById("idDocSelect").addEventListener("change", function() {
+  const otherField = document.getElementById("idDocOtherField")
+  const otherInput = document.getElementById("idDocOtherInput")
+  if (this.value === "その他") {
+    otherField.style.display = "block"
+    otherInput.required = true
+  } else {
+    otherField.style.display = "none"
+    otherInput.required = false
+    otherInput.value = ""
+  }
+})
+
+
+// ============================================================
 // 来店人数 → 同行者
 // ============================================================
 document.getElementById("visitorsSelect").addEventListener("change", function() {
@@ -653,7 +681,11 @@ const CATS_B = ['SGCバー','インゴット（延べ棒）','コイン']
 let itemIndexB = 0
 function createItemRowB(index) {
   const div = document.createElement("div")
-  div.className = "item-row"
+  div.className = "item-row-b"
+
+  // 上段：品名セレクト + 削除ボタン
+  const topRow = document.createElement("div")
+  topRow.className = "item-row-b-top"
 
   const catSel = document.createElement("select")
   catSel.name  = "item_cat_b_" + index
@@ -662,28 +694,34 @@ function createItemRowB(index) {
     const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o)
   })
 
-  // 重量入力（テキスト）
-  const weightWrap = document.createElement("div")
-  weightWrap.className = "weight-input-wrap"
+  const rm = document.createElement("button")
+  rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
+  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListB") })
+
+  topRow.appendChild(catSel); topRow.appendChild(rm)
+
+  // 下段：重量入力
+  const bottomRow = document.createElement("div")
+  bottomRow.className = "item-row-b-bottom"
+
+  const wLabel = document.createElement("span")
+  wLabel.style.cssText = "font-size:11px;color:#9b9490;flex-shrink:0;white-space:nowrap"
+  wLabel.textContent = "重量："
 
   const wInput = document.createElement("input")
   wInput.type  = "text"
   wInput.name  = "item_weight_" + index
   wInput.className  = "weight-input"
-  wInput.placeholder = "例：50 または 不明"
+  wInput.placeholder = "数量または不明"
   wInput.inputMode   = "decimal"
 
   const wUnit = document.createElement("span")
   wUnit.className   = "weight-unit"
   wUnit.textContent = "g"
 
-  weightWrap.appendChild(wInput); weightWrap.appendChild(wUnit)
+  bottomRow.appendChild(wLabel); bottomRow.appendChild(wInput); bottomRow.appendChild(wUnit)
 
-  const rm = document.createElement("button")
-  rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
-  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListB") })
-
-  div.appendChild(catSel); div.appendChild(weightWrap); div.appendChild(rm)
+  div.appendChild(topRow); div.appendChild(bottomRow)
   return div
 }
 
@@ -696,7 +734,7 @@ document.getElementById("addItemBtnB").addEventListener("click", addItemB)
 
 
 function updateRemoveBtns(listId) {
-  const rows = document.querySelectorAll("#" + listId + " .item-row")
+  const rows = document.querySelectorAll("#" + listId + " .item-row, #" + listId + " .item-row-b")
   rows.forEach(r => {
     r.querySelector(".item-remove").style.visibility = rows.length > 1 ? "visible" : "hidden"
   })
@@ -828,6 +866,12 @@ form.addEventListener("submit", async function(e) {
   if (!form.name.value.trim()) { alert("お名前を入力してください"); return }
   if (!form.tel.value.trim())  { alert("電話番号を入力してください"); return }
   if (!form.idDoc.value)       { alert("ご本人確認書類を選択してください"); return }
+  if (form.idDoc.value === "その他") {
+    const otherVal = document.getElementById("idDocOtherInput").value.trim()
+    if (!otherVal) { alert("書類の種類をご記入ください"); return }
+    // 送信データにはテキスト内容を使う
+    form.idDoc.value = "その他：" + otherVal
+  }
 
   overlay.classList.add("on")
   submitBtn.disabled = true
@@ -845,7 +889,7 @@ form.addEventListener("submit", async function(e) {
     const cntSel = row.querySelectorAll("select")[1]
     if (catSel && cntSel) items.push(catSel.value + " " + cntSel.value)
   })
-  document.querySelectorAll("#itemListB .item-row").forEach(row => {
+  document.querySelectorAll("#itemListB .item-row-b").forEach(row => {
     const catSel = row.querySelector("select")
     const wInput = row.querySelector("input[type='text']")
     const weight = wInput ? wInput.value.trim() : ""
