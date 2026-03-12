@@ -2,13 +2,14 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>完了</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html {
-  /* 2. 基本フォントサイズを16pxに設定（ブラウザ標準に合わせる） */
-  font-size: 24px; 
+  font-size: 16px; 
   -webkit-text-size-adjust: 100%;
 }
 body {
@@ -18,8 +19,8 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  /* 3. セーフエリア（iPhoneのノッチ部分）を考慮 */
-  padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+  min-height: -webkit-fill-available;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
 }
 .box {
   background: #fff;

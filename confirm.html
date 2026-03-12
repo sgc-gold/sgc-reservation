@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta charset="UTF-8">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
@@ -9,7 +11,8 @@
 body{
   font-family:-apple-system,"Noto Sans JP",sans-serif;
   background:#f9f6f0;display:flex;align-items:center;
-  justify-content:center;min-height:100vh;padding:20px;
+  justify-content:center;min-height:100vh;min-height:-webkit-fill-available;
+  padding:max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
 }
 .box{
   background:#fff;border-radius:12px;padding:28px 22px;
