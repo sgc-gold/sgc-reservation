@@ -35,17 +35,38 @@ body{
 <script>
 const LIFF_ID = "2009409928-oFHGILyB"
 
-// URLパラメータからtarget（GASのURL）を取得
-function getParam(key) {
-  const params = new URLSearchParams(window.location.search)
-  return params.get(key) || ""
-}
+// LIFF初期化前にURLを保存
+const originalSearch = window.location.search
+const originalHash   = window.location.hash
 
-// LIFFのハッシュパラメータからも取得（LIFF SDKがURLを書き換える場合）
-function getLiffParam(key) {
-  const hash = window.location.hash.replace("#", "")
-  const params = new URLSearchParams(hash)
-  return params.get(key) || getParam(key)
+function extractTarget() {
+  // 1. 通常のクエリパラメータ
+  const p = new URLSearchParams(originalSearch)
+  if (p.get("target")) return p.get("target")
+
+  // 2. ハッシュ内
+  const h = new URLSearchParams(originalHash.replace("#",""))
+  if (h.get("target")) return h.get("target")
+
+  // 3. liff.state（LIFF SDKがクエリを書き換えた場合）
+  try {
+    const state = new URLSearchParams(originalSearch).get("liff.state")
+    if (state) {
+      const sp = new URLSearchParams(decodeURIComponent(state))
+      if (sp.get("target")) return sp.get("target")
+    }
+  } catch(e) {}
+
+  // 4. 現在のURLのliff.stateを再確認
+  try {
+    const cur = new URLSearchParams(window.location.search).get("liff.state")
+    if (cur) {
+      const sp = new URLSearchParams(decodeURIComponent(cur))
+      if (sp.get("target")) return sp.get("target")
+    }
+  } catch(e) {}
+
+  return ""
 }
 
 liff.init({ liffId: LIFF_ID })
@@ -62,23 +83,26 @@ liff.init({ liffId: LIFF_ID })
     const staffName = profile.displayName
     document.getElementById("msg").textContent = staffName + " さんとして認証完了"
 
-    // targetのGAS URLを取得
-    const target = getLiffParam("target")
+    const target = extractTarget()
+
+    // デバッグ：取得できたURLを表示
     if (!target) {
       document.getElementById("spinner").style.display = "none"
       document.getElementById("msg").className = "err"
-      document.getElementById("msg").textContent = "パラメータが見つかりません"
+      document.getElementById("msg").textContent =
+        "パラメータが見つかりません\n" +
+        "search: " + originalSearch + "\n" +
+        "hash: " + originalHash
       return
     }
 
-    // staffNameを付加してGASの確認画面へリダイレクト
     const url = target + "&staffName=" + encodeURIComponent(staffName)
     setTimeout(function() { location.href = url }, 600)
   })
   .catch(function(err) {
     document.getElementById("spinner").style.display = "none"
     document.getElementById("msg").className = "err"
-    document.getElementById("msg").textContent = "認証に失敗しました。\nLINEアプリから開いてください。"
+    document.getElementById("msg").textContent = "認証エラー: " + err.message
   })
 </script>
 </body>
