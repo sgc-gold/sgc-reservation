@@ -107,14 +107,18 @@ textarea{height:90px;resize:none;line-height:1.7}
 .members-field{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
 .members-field.show{display:block}
 
-/* 商品行：共通2段レイアウト */
+/* 商品行：共通ベース */
 .item-row{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
 .item-row:last-child{margin-bottom:0}
 .item-row-top{display:flex;gap:8px;align-items:center}
 .item-row-bottom{display:flex;gap:6px;align-items:center;padding-left:2px}
 .item-select{flex:1;min-width:0}
 .item-sub-label{font-size:11px;color:#9b9490;flex-shrink:0;white-space:nowrap}
-.item-count{width:88px;flex-shrink:0}
+/* グループA：品名＋点数＋削除を1行に */
+.item-row-a{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.item-row-a:last-child{margin-bottom:0}
+.item-row-a .item-select{flex:1;min-width:0}
+.item-count{width:80px;flex-shrink:0}
 .item-remove{
   width:36px;height:36px;border:1px solid var(--border);
   background:#fff;border-radius:4px;color:#c0392b;font-size:16px;
@@ -615,11 +619,7 @@ const COUNTS  = ['1点','2点','3点','4点','5点','6点','7点','8点','9点',
 let itemIndexA = 0
 function createItemRowA(index) {
   const div = document.createElement("div")
-  div.className = "item-row"
-
-  // 上段：品名 + 削除ボタン
-  const top = document.createElement("div")
-  top.className = "item-row-top"
+  div.className = "item-row-a"
 
   const catSel = document.createElement("select")
   catSel.name = "item_cat_" + index
@@ -628,20 +628,6 @@ function createItemRowA(index) {
     const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o)
   })
 
-  const rm = document.createElement("button")
-  rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
-  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListA") })
-
-  top.appendChild(catSel); top.appendChild(rm)
-
-  // 下段：点数
-  const bottom = document.createElement("div")
-  bottom.className = "item-row-bottom"
-
-  const subLabel = document.createElement("span")
-  subLabel.className = "item-sub-label"
-  subLabel.textContent = "点数："
-
   const cntSel = document.createElement("select")
   cntSel.name = "item_cnt_" + index
   cntSel.className = "item-count"
@@ -649,8 +635,11 @@ function createItemRowA(index) {
     const o = document.createElement("option"); o.value = c; o.textContent = c; cntSel.appendChild(o)
   })
 
-  bottom.appendChild(subLabel); bottom.appendChild(cntSel)
-  div.appendChild(top); div.appendChild(bottom)
+  const rm = document.createElement("button")
+  rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
+  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListA") })
+
+  div.appendChild(catSel); div.appendChild(cntSel); div.appendChild(rm)
   return div
 }
 
@@ -722,7 +711,7 @@ document.getElementById("addItemBtnB").addEventListener("click", addItemB)
 
 
 function updateRemoveBtns(listId) {
-  const rows = document.querySelectorAll("#" + listId + " .item-row")
+  const rows = document.querySelectorAll("#" + listId + " .item-row-a, #" + listId + " .item-row")
   rows.forEach(r => {
     r.querySelector(".item-remove").style.visibility = rows.length > 1 ? "visible" : "hidden"
   })
@@ -866,7 +855,7 @@ form.addEventListener("submit", async function(e) {
 
   // 商品リストをまとめる（グループA：点数、グループB：重量）
   const items = []
-  document.querySelectorAll("#itemListA .item-row").forEach(row => {
+  document.querySelectorAll("#itemListA .item-row-a").forEach(row => {
     const catSel = row.querySelector(".item-select")
     const cntSel = row.querySelector(".item-count")
     if (catSel && cntSel) items.push(catSel.value + " " + cntSel.value)
