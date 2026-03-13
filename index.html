@@ -830,8 +830,6 @@ function createItemRowB(index) {
     if (!val) return
 
     if (val === 'SGCバー') {
-      wUnit.textContent = "g"
-      wUnit.style.display = ""
       WEIGHTS_BAR.forEach(w => {
         const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
       })
@@ -840,7 +838,6 @@ function createItemRowB(index) {
 
     } else if (val === 'インゴット') {
       wUnit.textContent = "g"
-      wUnit.style.display = ""
       WEIGHTS_ING.forEach(w => {
         const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
       })
@@ -848,7 +845,7 @@ function createItemRowB(index) {
       weightSel.onchange = function() {
         if (this.value === 'その他') {
           wInput.style.display = ""
-          wInput.placeholder = "重量"
+          wInput.placeholder = "重量(g)"
         } else {
           wInput.style.display = "none"
           wInput.value = ""
@@ -857,8 +854,6 @@ function createItemRowB(index) {
       weightSel.dispatchEvent(new Event("change"))
 
     } else if (val === 'コイン') {
-      wUnit.textContent = "oz"
-      wUnit.style.display = ""
       WEIGHTS_COIN.forEach(w => {
         const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
       })
@@ -1078,10 +1073,10 @@ form.addEventListener("submit", async function(e) {
     let weight = ""
     if (weightSel && weightSel.style.display !== "none") {
       weight = weightSel.value === "その他"
-        ? (wInput && wInput.value.trim() ? wInput.value.trim() + (weightSel.options[0]?.text?.includes("oz") ? "oz" : "g") : "重量不明")
+        ? (wInput && wInput.value.trim() ? wInput.value.trim() : "重量不明")
         : weightSel.value
     } else if (wInput && wInput.style.display !== "none") {
-      weight = wInput.value.trim() ? wInput.value.trim() + "g" : "重量不明"
+      weight = wInput.value.trim() || "重量不明"
     }
     const cnt = cntSel ? cntSel.value : ""
     items.push(catSel.value + (weight ? " " + weight : "") + " " + cnt)
