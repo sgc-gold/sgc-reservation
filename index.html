@@ -385,6 +385,19 @@ textarea{height:90px;resize:none;line-height:1.7}
           <option value="リピーター">リピーター</option>
         </select>
       </div>
+      <div class="members-field" id="firstVisitField" style="display:block;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)">
+        <label>お知りになったきっかけ</label>
+        <select name="referral">
+          <option value="">— 選択してください —</option>
+          <option>公式ホームページ</option>
+          <option>口コミサイト</option>
+          <option>知人紹介</option>
+          <option>テレビCM</option>
+          <option>大黄金展</option>
+          <option>SNS</option>
+          <option>その他</option>
+        </select>
+      </div>
       <div class="members-field" id="membersField">
         <label>メンバーズカードNo.</label>
         <input type="text" name="membersNo" placeholder="例：M1234">
@@ -670,10 +683,13 @@ document.getElementById("date3Select").innerHTML = buildDateOptions("— 日付�
 
 
 // ============================================================
-// リピーター → メンバーズカード
+// 初めて → きっかけ / リピーター → メンバーズカード
 // ============================================================
 document.getElementById("userTypeSelect").addEventListener("change", function() {
-  document.getElementById("membersField").classList.toggle("show", this.value === "リピーター")
+  const isFirst    = this.value === "初めて"
+  const isRepeater = this.value === "リピーター"
+  document.getElementById("firstVisitField").style.display = isFirst ? "block" : "none"
+  document.getElementById("membersField").classList.toggle("show", isRepeater)
 })
 
 
