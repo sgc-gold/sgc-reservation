@@ -119,6 +119,7 @@ textarea{height:90px;resize:none;line-height:1.7}
 .item-row-a:last-child{margin-bottom:0}
 .item-row-a .item-select{flex:1;min-width:0}
 .item-count{width:80px;flex-shrink:0}
+.weight-input{width:64px;flex-shrink:0}
 .item-remove{
   width:36px;height:36px;border:1px solid var(--border);
   background:#fff;border-radius:4px;color:#c0392b;font-size:16px;
@@ -659,11 +660,7 @@ const CATS_B = ['SGCバー','インゴット（延べ棒）','コイン']
 let itemIndexB = 0
 function createItemRowB(index) {
   const div = document.createElement("div")
-  div.className = "item-row"
-
-  // 上段：品名 + 削除ボタン
-  const top = document.createElement("div")
-  top.className = "item-row-top"
+  div.className = "item-row-a"
 
   const catSel = document.createElement("select")
   catSel.name = "item_cat_b_" + index
@@ -672,33 +669,22 @@ function createItemRowB(index) {
     const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o)
   })
 
-  const rm = document.createElement("button")
-  rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
-  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListB") })
-
-  top.appendChild(catSel); top.appendChild(rm)
-
-  // 下段：重量入力
-  const bottom = document.createElement("div")
-  bottom.className = "item-row-bottom"
-
-  const subLabel = document.createElement("span")
-  subLabel.className = "item-sub-label"
-  subLabel.textContent = "重量："
-
   const wInput = document.createElement("input")
   wInput.type = "text"
   wInput.name = "item_weight_" + index
   wInput.className = "weight-input"
-  wInput.placeholder = "数値または不明"
+  wInput.placeholder = "重量"
   wInput.inputMode = "decimal"
 
   const wUnit = document.createElement("span")
   wUnit.className = "weight-unit"
   wUnit.textContent = "g"
 
-  bottom.appendChild(subLabel); bottom.appendChild(wInput); bottom.appendChild(wUnit)
-  div.appendChild(top); div.appendChild(bottom)
+  const rm = document.createElement("button")
+  rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
+  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListB") })
+
+  div.appendChild(catSel); div.appendChild(wInput); div.appendChild(wUnit); div.appendChild(rm)
   return div
 }
 
@@ -860,7 +846,7 @@ form.addEventListener("submit", async function(e) {
     const cntSel = row.querySelector(".item-count")
     if (catSel && cntSel) items.push(catSel.value + " " + cntSel.value)
   })
-  document.querySelectorAll("#itemListB .item-row").forEach(row => {
+  document.querySelectorAll("#itemListB .item-row-a").forEach(row => {
     const catSel = row.querySelector(".item-select")
     const wInput = row.querySelector(".weight-input")
     const weight = wInput ? wInput.value.trim() : ""
