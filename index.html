@@ -734,39 +734,45 @@ function createItemRowB(index) {
 
     if (val === 'SGCバー') {
       wUnit.textContent = "g"
+      wUnit.style.display = ""
       WEIGHTS_BAR.forEach(w => {
         const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
       })
       weightSel.style.display = ""
-      wUnit.style.display = ""
       weightSel.onchange = null
 
     } else if (val === 'インゴット') {
       wUnit.textContent = "g"
+      wUnit.style.display = ""
       WEIGHTS_ING.forEach(w => {
         const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
       })
       weightSel.style.display = ""
       weightSel.onchange = function() {
         if (this.value === 'その他') {
-          wInput.style.display = ""; wInput.placeholder = "重量"; wUnit.style.display = ""
+          wInput.style.display = ""
+          wInput.placeholder = "重量"
         } else {
-          wInput.style.display = "none"; wUnit.style.display = ""; wInput.value = ""
+          wInput.style.display = "none"
+          wInput.value = ""
         }
       }
       weightSel.dispatchEvent(new Event("change"))
 
     } else if (val === 'コイン') {
       wUnit.textContent = "oz"
+      wUnit.style.display = ""
       WEIGHTS_COIN.forEach(w => {
         const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
       })
       weightSel.style.display = ""
       weightSel.onchange = function() {
         if (this.value === 'その他') {
-          wInput.style.display = ""; wInput.placeholder = "oz数"; wUnit.style.display = ""
+          wInput.style.display = ""
+          wInput.placeholder = "oz数"
         } else {
-          wInput.style.display = "none"; wUnit.style.display = ""; wInput.value = ""
+          wInput.style.display = "none"
+          wInput.value = ""
         }
       }
       weightSel.dispatchEvent(new Event("change"))
