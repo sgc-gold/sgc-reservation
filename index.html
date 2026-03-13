@@ -196,6 +196,42 @@ textarea{height:90px;resize:none;line-height:1.7}
   content:'・';position:absolute;left:0;color:var(--gold);
 }
 
+/* 確認事項チェックボックス */
+.agree-box{
+  background:#1a1612;border-radius:6px;padding:16px;
+  margin-top:24px;margin-bottom:0;
+}
+.agree-title{
+  font-size:9px;letter-spacing:0.25em;color:var(--gold);
+  margin-bottom:12px;font-weight:400;
+}
+.agree-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08);
+  cursor:pointer;
+}
+.agree-item:last-child{border-bottom:none}
+.agree-item input[type="checkbox"]{
+  width:18px;height:18px;flex-shrink:0;margin-top:2px;
+  accent-color:var(--gold);cursor:pointer;
+}
+.agree-item-text{
+  font-size:11px;color:rgba(255,255,255,0.7);line-height:1.8;
+}
+.agree-item-text em{color:var(--gold);font-style:normal;font-weight:500;}
+.agree-all-label{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;margin-top:12px;
+  background:rgba(184,151,58,0.12);border-radius:6px;
+  border:1px solid rgba(184,151,58,0.3);cursor:pointer;
+}
+.agree-all-label input[type="checkbox"]{
+  width:20px;height:20px;flex-shrink:0;accent-color:var(--gold);cursor:pointer;
+}
+.agree-all-text{
+  font-size:12px;font-weight:600;color:var(--gold);letter-spacing:0.05em;
+}
+
 /* 支払い方法 */
 .payment-wrap{display:flex;gap:10px;margin-top:4px}
 .payment-opt{
@@ -480,6 +516,51 @@ textarea{height:90px;resize:none;line-height:1.7}
       <div class="caution-item">本人確認書類をお忘れなくお持ちください。</div>
       <div class="caution-item">お買取金額が200万円以上の場合は、運転免許証またはマイナンバーカードが必要です。パスポート・健康保険資格確認書はご利用いただけません。</div>
       <div class="caution-item">ご予約は来店日時を確保するものであり、お持込商品の買取を保証するものではございません。査定結果によっては買取できない場合もございますので、あらかじめご了承ください。</div>
+    </div>
+
+    <!-- 確認事項（全チェック必須） -->
+    <div class="agree-box">
+      <div class="agree-title">— 以下の事項をご確認ください —</div>
+
+      <label class="agree-item">
+        <input type="checkbox" name="agree1" required>
+        <span class="agree-item-text">お買取り商品は<em>ご本人様の所有物</em>に限らせていただきます。</span>
+      </label>
+
+      <label class="agree-item">
+        <input type="checkbox" name="agree2" required>
+        <span class="agree-item-text">ご成約後の<em>返品は致しかねます</em>。</span>
+      </label>
+
+      <label class="agree-item">
+        <input type="checkbox" name="agree3" required>
+        <span class="agree-item-text">石付き査定の際、お外しする時に石が割れても<em>修復は出来かねます</em>。</span>
+      </label>
+
+      <label class="agree-item">
+        <input type="checkbox" name="agree4" required>
+        <span class="agree-item-text">当社が不正な商品と判断した際は<em>返金を請求する場合</em>がございます。</span>
+      </label>
+
+      <label class="agree-item">
+        <input type="checkbox" name="agree5" required>
+        <span class="agree-item-text">金地金や貴金属を売却した際の利益が年間で一定金額を超える場合は、<em>確定申告が必要</em>になります。詳細は税理士や最寄りの税務署にご相談ください。</span>
+      </label>
+
+      <label class="agree-item">
+        <input type="checkbox" name="agree6" required>
+        <span class="agree-item-text">お客様が<em>暴力団・暴力団員</em>（暴力団員でなくなってから5年を経過しない人を含む）に該当した場合は取引を解除することができるものといたします。</span>
+      </label>
+
+      <label class="agree-item">
+        <input type="checkbox" name="agree7" required>
+        <span class="agree-item-text">ご予約は<em>来店日時を確保するもの</em>であり、お持込商品の買取を保証するものではございません。査定結果によっては買取できない場合もございます。</span>
+      </label>
+
+      <label class="agree-all-label">
+        <input type="checkbox" id="agreeAll">
+        <span class="agree-all-text">上記すべての事項に同意する</span>
+      </label>
     </div>
 
     <div class="submit-wrap">
@@ -929,6 +1010,16 @@ const form      = document.getElementById("form")
 const overlay   = document.getElementById("overlay")
 const submitBtn = document.getElementById("submitBtn")
 
+// 「すべてに同意する」で一括チェック
+const agreeAll = document.getElementById("agreeAll")
+const agreeChecks = document.querySelectorAll('input[name^="agree"]:not(#agreeAll)')
+agreeAll.addEventListener("change", function() {
+  agreeChecks.forEach(cb => cb.checked = this.checked)
+})
+agreeChecks.forEach(cb => cb.addEventListener("change", function() {
+  agreeAll.checked = [...agreeChecks].every(c => c.checked)
+}))
+
 form.addEventListener("submit", async function(e) {
   e.preventDefault()
 
@@ -936,6 +1027,9 @@ form.addEventListener("submit", async function(e) {
   if (!form.name.value.trim()) { alert("お名前を入力してください"); return }
   if (!form.tel.value.trim())  { alert("電話番号を入力してください"); return }
   if (!form.idDoc.value)       { alert("ご本人確認書類を選択してください"); return }
+
+  const unchecked = [...agreeChecks].some(cb => !cb.checked)
+  if (unchecked) { alert("確認事項をすべてチェックしてください"); return }
 
   overlay.classList.add("on")
   submitBtn.disabled = true
