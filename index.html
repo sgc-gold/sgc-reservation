@@ -288,7 +288,7 @@ textarea{height:90px;resize:none;line-height:1.7}
 
 <div class="header">
   <div class="header-inner">
-    <div class="header-eyebrow">Ginza Jewelry</div>
+    <div class="header-eyebrow">GINZA SGC</div>
     <h1>来店予約</h1>
     <div class="header-sub">Store Appointment</div>
   </div>
@@ -387,6 +387,10 @@ textarea{height:90px;resize:none;line-height:1.7}
           <option>パスポート（住所記載あり）</option>
         </select>
       </div>
+      <div style="margin-top:10px;padding:10px 12px;background:#fff8e8;border-radius:6px;border-left:3px solid var(--gold)">
+        <div style="font-size:10px;color:var(--gold);letter-spacing:0.1em;margin-bottom:4px">⚠️ 高額買取の場合</div>
+        <div style="font-size:12px;color:#5a5040;line-height:1.8">お買取金額が<strong>200万円以上</strong>の場合は、<strong>運転免許証またはマイナンバーカード</strong>のいずれかが必要となります。<br>パスポート・健康保険資格確認書はご利用いただけません。</div>
+      </div>
     </div>
 
     <!-- STEP 5 来店人数 -->
@@ -472,11 +476,9 @@ textarea{height:90px;resize:none;line-height:1.7}
     <div class="caution-box" style="margin-top:24px">
       <div class="caution-title">— ご予約前にご確認ください —</div>
       <div class="caution-item">ご予約後、LINEにて日時確定のご連絡をいたします。</div>
-      <div class="caution-item">ご希望のお支払い方法に添えない場合がございます。</div>
-      <div class="caution-item">SGCバー・インゴット・コインは前日までのご予約で現金対応。当日ご予約は振込のみとなります。</div>
-      <div class="caution-item">SGCバー1本（100g）・インゴット/コイン計50g以上は振込のみとなります。</div>
-      <div class="caution-item">お買取金額が300万円を超える場合は振込のみとなります。</div>
       <div class="caution-item">本人確認書類をお忘れなくお持ちください。</div>
+      <div class="caution-item">お買取金額が200万円以上の場合は、運転免許証またはマイナンバーカードが必要です。パスポート・健康保険資格確認書はご利用いただけません。</div>
+      <div class="caution-item">ご予約は来店日時を確保するものであり、お持込商品の買取を保証するものではございません。査定結果によっては買取できない場合もございますので、あらかじめご了承ください。</div>
     </div>
 
     <div class="submit-wrap">
@@ -656,24 +658,26 @@ document.getElementById("addItemBtnA").addEventListener("click", addItemA)
 // ============================================================
 // 商品行 グループB（重量）
 // ============================================================
-const CATS_B = ['選択', 'SGCバー', 'インゴット', 'コイン']
-const WEIGHTS_BAR  = ['5g','10g','20g','50g','100g','その他']
-const WEIGHTS_COIN = ['1oz','1/2oz','1/4oz','1/10oz','その他']
+const CATS_B       = ['SGCバー', 'インゴット（延べ棒）', 'コイン']
+const WEIGHTS_BAR  = ['100g', '200g', 'その他']
+const WEIGHTS_ING  = ['その他']   // 重量テキスト入力のみ
+const WEIGHTS_COIN = ['1oz', '1/2oz', '1/4oz', '1/10oz', 'その他']
 
 let itemIndexB = 0
 function createItemRowB(index) {
   const div = document.createElement("div")
   div.className = "item-row-a"
 
-  // 品種セレクト
+  // 品種セレクト（flex固定でレイアウト崩れ防止）
   const catSel = document.createElement("select")
   catSel.name = "item_cat_b_" + index
   catSel.className = "item-select"
+  catSel.style.cssText = "flex:1;min-width:0;max-width:100%"
+  const placeholder = document.createElement("option")
+  placeholder.value = ""; placeholder.textContent = "— 選択 —"
+  catSel.appendChild(placeholder)
   CATS_B.forEach(c => {
-    const o = document.createElement("option")
-    o.value = c === '選択' ? '' : c
-    o.textContent = c
-    catSel.appendChild(o)
+    const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o)
   })
 
   // 重量セレクト（初期は非表示）
@@ -696,42 +700,49 @@ function createItemRowB(index) {
   wUnit.className = "weight-unit"
   wUnit.style.display = "none"
 
-  // 品種変更で重量セレクトを切り替え
-  catSel.addEventListener("change", function() {
-    const val = this.value
+  function applyWeightSel(val) {
     weightSel.innerHTML = ""
     wInput.style.display = "none"
     wUnit.style.display = "none"
+    wInput.value = ""
 
-    if (!val) {
-      weightSel.style.display = "none"
-      return
-    }
+    if (!val) { weightSel.style.display = "none"; return }
 
-    const opts = val === 'コイン' ? WEIGHTS_COIN : WEIGHTS_BAR
-    const unit = val === 'コイン' ? "oz" : "g"
+    let opts, unit
+    if (val === 'コイン')            { opts = WEIGHTS_COIN; unit = "oz" }
+    else if (val === 'SGCバー')      { opts = WEIGHTS_BAR;  unit = "g"  }
+    else                             { opts = WEIGHTS_ING;  unit = "g"  }  // インゴット
     wUnit.textContent = unit
 
     opts.forEach(w => {
       const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
     })
-    weightSel.style.display = ""
 
-    // 重量セレクト変更でテキスト入力を表示
-    weightSel.onchange = function() {
-      if (this.value === 'その他') {
-        wInput.style.display = ""
-        wInput.placeholder = unit === 'oz' ? "oz数" : "重量"
-        wUnit.style.display = ""
-      } else {
-        wInput.style.display = "none"
-        wUnit.style.display = "none"
-        wInput.value = ""
+    // インゴットはセレクト不要（その他のみ）→ テキスト入力を直接表示
+    if (opts.length === 1 && opts[0] === 'その他') {
+      weightSel.style.display = "none"
+      wInput.style.display = ""
+      wInput.placeholder = "重量"
+      wUnit.style.display = ""
+    } else {
+      weightSel.style.display = ""
+      // 重量セレクト変更
+      weightSel.onchange = function() {
+        if (this.value === 'その他') {
+          wInput.style.display = ""
+          wInput.placeholder = unit === 'oz' ? "oz数" : "重量"
+          wUnit.style.display = ""
+        } else {
+          wInput.style.display = "none"
+          wUnit.style.display = "none"
+          wInput.value = ""
+        }
       }
+      weightSel.dispatchEvent(new Event("change"))
     }
-    // 初回も判定
-    weightSel.dispatchEvent(new Event("change"))
-  })
+  }
+
+  catSel.addEventListener("change", function() { applyWeightSel(this.value) })
 
   const rm = document.createElement("button")
   rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
