@@ -70,11 +70,12 @@ const box = document.getElementById("content")
 
 if (type === "success") {
   const staffLine = staff ? '<br><span class="staff">操作者：' + staff + '</span>' : ''
+  const dateLine  = date  ? '<div style="font-size:0.9rem; color:#999; margin-top:8px;">' + date + '</div>' : ''
   box.innerHTML =
     '<span class="icon">🎉</span>' +
     '<h2>' + title + '</h2>' +
-    '<div class="info"><span class="gold">' + name + '</span> 様' + 
-    '<div style="font-size:0.9rem; color:#999; margin-top:8px;">' + date + '</div>' + 
+    '<div class="info"><span class="gold">' + name + '</span> 様' +
+    dateLine +
     staffLine + '</div>' +
     '<p class="note">顧客のLINEに通知しました</p>'
 } else if (type === "done") {
