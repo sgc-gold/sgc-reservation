@@ -1097,6 +1097,11 @@ form.addEventListener("submit", async function(e) {
   // LIFFで取得したユーザーIDをセット
   data.lineUserId = liffUserId
 
+  // 1名（本人のみ）の場合は同行者情報をクリア
+  if (data.visitors === "1") {
+    data.companionRelation = ""
+  }
+
   // 商品リストをまとめる（グループA：点数、グループB：重量）
   const items = []
   document.querySelectorAll("#itemListA .item-row-a").forEach(row => {
