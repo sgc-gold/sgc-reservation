@@ -83,22 +83,39 @@ function showManual() {
 
 liff.init({ liffId: LIFF_ID })
   .then(function() {
-    // liff.getContext().liffState からsidを取得
-    try {
-      const ctx = liff.getContext()
-      if (ctx && ctx.liffState) {
-        const params = new URLSearchParams(decodeURIComponent(ctx.liffState))
-        sid = params.get("sid") || ""
+    // SID取得：複数の場所から段階的に試みる
+    function extractSid(str) {
+      if (!str) return ""
+      try {
+        // URLエンコードされている場合とそうでない場合の両方を試みる
+        const decoded = decodeURIComponent(str)
+        return new URLSearchParams(decoded).get("sid") || new URLSearchParams(str).get("sid") || ""
+      } catch(e) {
+        try { return new URLSearchParams(str).get("sid") || "" } catch(e2) { return "" }
       }
-    } catch(e) {}
+    }
 
-    // 現在のURLのクエリからも試みる
+    // ① 現在のURLのクエリパラメータから取得（最優先）
+    sid = new URLSearchParams(window.location.search).get("sid") || ""
+
+    // ② liff.getContext().liffState から取得
     if (!sid) {
-      sid = new URLSearchParams(window.location.search).get("sid") || ""
+      try {
+        const ctx = liff.getContext()
+        if (ctx && ctx.liffState) sid = extractSid(ctx.liffState)
+      } catch(e) {}
+    }
+
+    // ③ URLのhashから取得（liff.line.me/?liff.state=... 形式）
+    if (!sid) {
+      try {
+        const hash = window.location.hash.replace(/^#/, "")
+        sid = extractSid(hash)
+      } catch(e) {}
     }
 
     if (!sid) {
-      showError("セッションIDが見つかりません\nもう一度ボタンをタップしてください\n\nstate:" + JSON.stringify(liff.getContext()))
+      showError("セッションIDが見つかりません\nもう一度ボタンをタップしてください\n\ncontext:" + JSON.stringify(liff.getContext()))
       return
     }
 
