@@ -341,23 +341,48 @@ textarea{height:90px;resize:none;line-height:1.7}
       <div class="step-label">ご希望日時</div>
     </div>
     <div class="card">
+      <!-- ③ 営業時間 -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;
+        background:#1a1612;border-radius:6px;margin-bottom:16px;">
+        <span style="font-size:16px">🕐</span>
+        <div>
+          <div style="font-size:9px;letter-spacing:0.2em;color:var(--gold);margin-bottom:2px">BUSINESS HOURS</div>
+          <div style="font-size:13px;color:#fff;font-weight:500">営業時間 11:00 〜 20:00</div>
+        </div>
+      </div>
+
       <div class="field">
         <label>第1希望日時<span class="required">*</span></label>
-        <select name="date1" required id="date1Select">
-          <option value="">— 日付を選択 —</option>
-        </select>
+        <div style="display:flex;gap:8px;">
+          <select id="date1DateSel" style="flex:1" required>
+            <option value="">— 日付 —</option>
+          </select>
+          <select id="date1TimeSel" name="date1" style="width:100px" required>
+            <option value="">— 時間 —</option>
+          </select>
+        </div>
       </div>
       <div class="field">
         <label>第2希望日時</label>
-        <select name="date2" id="date2Select">
-          <option value="">— 日付を選択（任意）—</option>
-        </select>
+        <div style="display:flex;gap:8px;">
+          <select id="date2DateSel" style="flex:1">
+            <option value="">— 日付（任意）—</option>
+          </select>
+          <select id="date2TimeSel" name="date2" style="width:100px">
+            <option value="">— 時間 —</option>
+          </select>
+        </div>
       </div>
       <div class="field">
         <label>第3希望日時</label>
-        <select name="date3" id="date3Select">
-          <option value="">— 日付を選択（任意）—</option>
-        </select>
+        <div style="display:flex;gap:8px;">
+          <select id="date3DateSel" style="flex:1">
+            <option value="">— 日付（任意）—</option>
+          </select>
+          <select id="date3TimeSel" name="date3" style="width:100px">
+            <option value="">— 時間 —</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -479,10 +504,18 @@ textarea{height:90px;resize:none;line-height:1.7}
         </label>
       </div>
       <div class="payment-note">
-        <div style="margin-bottom:6px;font-weight:500;color:#a03020">⚠️ 振込のみとなる場合</div>
-        <div style="margin-bottom:4px">・SGCバー1本（100g）／インゴット・コイン 合計50g以上</div>
-        <div style="margin-bottom:4px">・お買取金額が300万円超の場合</div>
-        <div style="margin-bottom:10px">・SGCバー・インゴット・コインの<strong>当日予約</strong>（前日までのご予約は現金対応可）</div>
+        <div style="margin-bottom:8px;font-weight:500;color:#a03020">⚠️ 振込のみとなる場合</div>
+        <div style="margin-bottom:6px;padding:8px 10px;background:rgba(192,57,43,0.06);border-radius:4px;">
+          <div style="font-size:10px;color:#a03020;margin-bottom:4px;font-weight:500">● 前日予約でも現金不可</div>
+          <div style="margin-bottom:2px">・SGCバー 2本（200g）以上</div>
+          <div style="margin-bottom:2px">・インゴット・コイン 合計50g以上</div>
+          <div style="margin-bottom:2px">・SGCバー 1本 ＋ インゴット・コイン（量問わず）の組み合わせ</div>
+          <div>・お買取金額が300万円超</div>
+        </div>
+        <div style="margin-bottom:10px;padding:8px 10px;background:rgba(192,57,43,0.06);border-radius:4px;">
+          <div style="font-size:10px;color:#a03020;margin-bottom:4px;font-weight:500">● 当日予約のみ現金不可</div>
+          <div>・SGCバー・インゴット・コイン（100g以下・50g未満でも当日は振込）</div>
+        </div>
         <div style="color:#888">※ご希望に添えない場合がございます。あらかじめご了承ください。</div>
       </div>
     </div>
@@ -650,45 +683,73 @@ liff.init({ liffId: LIFF_ID })
 
 
 // ============================================================
-// 日時セレクト生成
+// 日時セレクト生成（日付・時間分離）
 // ============================================================
-function buildDateOptions(placeholder) {
-  const allSlots = []
-  for (let h = 11; h <= 18; h++) {
-    [0, 30].forEach(m => {
-      allSlots.push({ h, m, str: String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') })
-    })
-  }
+const OPEN_H = 11, CLOSE_H = 20  // 営業時間
+
+function buildDateList() {
   const now     = new Date()
   const weekday = ['日','月','火','水','木','金','土']
-  const opts    = ['<option value="">' + placeholder + '</option>']
-
+  const dates   = []
   for (let d = 0; d <= 14; d++) {
-    const date    = new Date(now)
+    const date = new Date(now)
     date.setDate(now.getDate() + d)
-    const yyyy    = date.getFullYear()
-    const mm      = date.getMonth() + 1
-    const dd      = date.getDate()
-    const wd      = weekday[date.getDay()]
-    const dateStr = mm + '月' + dd + '日（' + wd + '）'
-    const isToday = (d === 0)
-    const cutoff  = isToday ? new Date(now.getTime() + 60 * 60 * 1000) : null
-
-    allSlots.forEach(slot => {
-      if (isToday) {
-        const slotTime = new Date(yyyy, mm - 1, dd, slot.h, slot.m)
-        if (slotTime <= cutoff) return
-      }
-      const val = yyyy + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0') + 'T' + slot.str
-      opts.push('<option value="' + val + '">' + dateStr + ' ' + slot.str + '</option>')
+    const yyyy = date.getFullYear()
+    const mm   = date.getMonth() + 1
+    const dd   = date.getDate()
+    const wd   = weekday[date.getDay()]
+    dates.push({
+      val:    yyyy + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0'),
+      label:  mm + '月' + dd + '日（' + wd + '）',
+      isToday: d === 0,
+      yyyy, mm, dd
     })
+  }
+  return dates
+}
+
+function buildTimeOptions(dateInfo) {
+  if (!dateInfo) return '<option value="">— 時間 —</option>'
+  const now    = new Date()
+  const cutoff = dateInfo.isToday ? new Date(now.getTime() + 60 * 60 * 1000) : null
+  const opts   = ['<option value="">— 時間 —</option>']
+  for (let h = OPEN_H; h < CLOSE_H; h++) {
+    for (const m of [0, 30]) {
+      const slotTime = new Date(dateInfo.yyyy, dateInfo.mm - 1, dateInfo.dd, h, m)
+      if (cutoff && slotTime <= cutoff) continue
+      const hh  = String(h).padStart(2,'0')
+      const mm2 = String(m).padStart(2,'0')
+      const val = dateInfo.val + 'T' + hh + ':' + mm2
+      opts.push('<option value="' + val + '">' + hh + ':' + mm2 + '</option>')
+    }
   }
   return opts.join('')
 }
 
-document.getElementById("date1Select").innerHTML = buildDateOptions("— 日付を選択 —")
-document.getElementById("date2Select").innerHTML = buildDateOptions("— 日付を選択（任意）—")
-document.getElementById("date3Select").innerHTML = buildDateOptions("— 日付を選択（任意）—")
+const DATE_LIST = buildDateList()
+
+function initDateSel(dateSelId, timeSelId, placeholder) {
+  const dateSel = document.getElementById(dateSelId)
+  const timeSel = document.getElementById(timeSelId)
+
+  // 日付オプションを構築
+  let dateOpts = '<option value="">' + placeholder + '</option>'
+  DATE_LIST.forEach(function(d) {
+    dateOpts += '<option value="' + d.val + '">' + d.label + '</option>'
+  })
+  dateSel.innerHTML = dateOpts
+
+  // 日付を選んだら時間セレクトを更新
+  dateSel.addEventListener("change", function() {
+    const found = DATE_LIST.find(function(d) { return d.val === this.value }.bind(this))
+    timeSel.innerHTML = buildTimeOptions(found || null)
+    timeSel.value = ""
+  })
+}
+
+initDateSel("date1DateSel", "date1TimeSel", "— 日付 —")
+initDateSel("date2DateSel", "date2TimeSel", "— 日付（任意）—")
+initDateSel("date3DateSel", "date3TimeSel", "— 日付（任意）—")
 
 
 // ============================================================
@@ -954,7 +1015,10 @@ function compressImage(file, maxSize, quality) {
 form.addEventListener("submit", async function(e) {
   e.preventDefault()
 
-  if (!form.date1.value)       { alert("第1希望日時を選択してください"); return }
+  const date1DateVal = document.getElementById("date1DateSel").value
+  const date1TimeVal = document.getElementById("date1TimeSel").value
+  if (!date1DateVal)  { alert("第1希望の日付を選択してください"); return }
+  if (!date1TimeVal)  { alert("第1希望の時間を選択してください"); return }
   if (!form.name.value.trim()) { alert("お名前を入力してください"); return }
   if (!form.tel.value.trim())  { alert("電話番号を入力してください"); return }
   if (!form.idDoc.value)       { alert("ご本人確認書類を選択してください"); return }
