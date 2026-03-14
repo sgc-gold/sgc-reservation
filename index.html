@@ -438,8 +438,8 @@ textarea{height:90px;resize:none;line-height:1.7}
         </select>
       </div>
       <div style="margin-top:10px;padding:10px 12px;background:#fff8e8;border-radius:6px;border-left:3px solid var(--gold)">
-        <div style="font-size:10px;color:var(--gold);letter-spacing:0.1em;margin-bottom:4px">⚠️ 高額買取の場合</div>
-        <div style="font-size:12px;color:#5a5040;line-height:1.8">お買取金額が<strong>200万円以上</strong>の場合は、<strong>運転免許証またはマイナンバーカード</strong>のいずれかが必要となります。<br>パスポート・健康保険資格確認書はご利用いただけません。</div>
+        <div style="font-size:10px;color:var(--gold);letter-spacing:0.1em;margin-bottom:4px">⚠️ 買取金額が200万円を超える場合</div>
+        <div style="font-size:12px;color:#5a5040;line-height:1.8"><strong>運転免許証またはマイナンバーカード</strong>のいずれかが必要です。</div>
       </div>
     </div>
 
@@ -485,14 +485,15 @@ textarea{height:90px;resize:none;line-height:1.7}
           <input type="radio" name="paymentMethod" value="振込">
           <span class="payment-opt-icon">🏦</span>
           <div class="payment-opt-label">振込</div>
-          <div class="payment-opt-sub">お振込先は<br>ご来店時にご案内</div>
+          <div class="payment-opt-sub">振込先は買取<br>伝票にご記入</div>
         </label>
       </div>
       <div class="payment-note">
-        ※ご希望に添えない場合がございます。<br>
-        ※SGCバー・インゴット・コインは前日までのご予約で現金対応（当日予約は振込のみ）。<br>
-        ※SGCバー1本（100g）・インゴット/コイン計50g以上は振込のみ。<br>
-        ※お買取金額が300万円を超える場合は振込のみとなります。
+        <div style="margin-bottom:6px;font-weight:500;color:#a03020">⚠️ 振込のみとなる場合</div>
+        <div style="margin-bottom:4px">・SGCバー1本（100g）／インゴット・コイン 合計50g以上</div>
+        <div style="margin-bottom:4px">・お買取金額が300万円超の場合</div>
+        <div style="margin-bottom:10px">・SGCバー・インゴット・コインの<strong>当日予約</strong>（前日までのご予約は現金対応可）</div>
+        <div style="color:#888">※ご希望に添えない場合がございます。あらかじめご了承ください。</div>
       </div>
     </div>
 
@@ -503,12 +504,36 @@ textarea{height:90px;resize:none;line-height:1.7}
     </div>
     <div class="card">
       <div class="photo-hint">
-        📷 タップで撮影または選択。全体・刻印・宝石アップなど各角度からお送りください。
+        全体・刻印・宝石アップなど各角度からお送りいただくとスムーズです。
       </div>
-      <div class="photo-grid" id="photoGrid">
-        <!-- スロットはJSで生成 -->
+      <!-- 追加済み写真のプレビューリスト -->
+      <div id="photoList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+      <!-- 追加ボタン（5枚未満の場合のみ表示） -->
+      <div id="photoAddArea">
+        <label id="photoAddBtn" style="display:flex;align-items:center;justify-content:center;gap:8px;
+          width:100%;padding:14px;background:#faf8f4;border:1.5px dashed var(--border);border-radius:6px;
+          color:var(--gold);font-size:12px;letter-spacing:0.1em;cursor:pointer;box-sizing:border-box;">
+          <span style="font-size:18px">📷</span> 写真を追加する
+          <input id="photoFileInput" type="file" accept="image/*" style="display:none">
+        </label>
+        <div style="margin-top:6px;display:flex;gap:8px;">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+            padding:10px;background:#f0f7f1;border:1px solid #c8e0cb;border-radius:6px;
+            color:#2d7a3c;font-size:11px;cursor:pointer;">
+            <span>📸</span> カメラで撮影
+            <input type="file" accept="image/*" capture="environment" style="display:none"
+              onchange="handlePhotoInput(this)">
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+            padding:10px;background:#f0f4fb;border:1px solid #c0d0e8;border-radius:6px;
+            color:#1a56c4;font-size:11px;cursor:pointer;">
+            <span>🖼️</span> アルバムから選択
+            <input type="file" accept="image/*" style="display:none"
+              onchange="handlePhotoInput(this)">
+          </label>
+        </div>
       </div>
-      <div class="photo-count" id="photoCount">0 / 5枚</div>
+      <div class="photo-count" id="photoCount" style="text-align:right;font-size:10px;color:var(--gray);margin-top:6px">0 / 5枚</div>
     </div>
 
     <!-- STEP 8 備考 -->
@@ -526,18 +551,17 @@ textarea{height:90px;resize:none;line-height:1.7}
     <div class="caution-box" style="margin-top:24px">
       <div class="caution-title">— ご予約前にご確認ください —</div>
       <div class="caution-item">ご予約後、LINEにて日時確定のご連絡をいたします。</div>
-      <div class="caution-item">本人確認書類をお忘れなくお持ちください。</div>
-      <div class="caution-item">お買取金額が200万円以上の場合は、運転免許証またはマイナンバーカードが必要です。パスポート・健康保険資格確認書はご利用いただけません。</div>
-      <div class="caution-item">ご予約は来店日時を確保するものであり、お持込商品の買取を保証するものではございません。査定結果によっては買取できない場合もございますので、あらかじめご了承ください。</div>
+      <div class="caution-item">本人確認書類を必ずお持ちください。買取金額が200万円を超える場合は<em style="color:#b8973a">運転免許証またはマイナンバーカード</em>が必要です。</div>
+      <div class="caution-item">ご予約は来店日時の確保であり、買取を保証するものではありません。査定結果によっては買取できない場合もございます。</div>
     </div>
 
     <!-- 確認事項（全チェック必須） -->
     <div class="agree-box">
-      <div class="agree-title">— 以下の事項をご確認ください —</div>
+      <div class="agree-title">— 以下の事項にご同意ください —</div>
 
       <label class="agree-item">
         <input type="checkbox" name="agree1" required>
-        <span class="agree-item-text">お買取り商品は<em>ご本人様の所有物</em>に限らせていただきます。</span>
+        <span class="agree-item-text">お買取り商品は<em>ご本人様の所有物</em>に限ります。</span>
       </label>
 
       <label class="agree-item">
@@ -547,32 +571,27 @@ textarea{height:90px;resize:none;line-height:1.7}
 
       <label class="agree-item">
         <input type="checkbox" name="agree3" required>
-        <span class="agree-item-text">石付き査定の際、お外しする時に石が割れても<em>修復は出来かねます</em>。</span>
+        <span class="agree-item-text">石付き査定の際、取り外し時に石が割れた場合でも<em>修復は承りかねます</em>。</span>
       </label>
 
       <label class="agree-item">
         <input type="checkbox" name="agree4" required>
-        <span class="agree-item-text">当社が不正な商品と判断した際は<em>返金を請求する場合</em>がございます。</span>
+        <span class="agree-item-text">不正な商品と判断した際は<em>返金を請求する場合</em>があります。</span>
       </label>
 
       <label class="agree-item">
         <input type="checkbox" name="agree5" required>
-        <span class="agree-item-text">金地金や貴金属を売却した際の利益が年間で一定金額を超える場合は、<em>確定申告が必要</em>になります。詳細は税理士や最寄りの税務署にご相談ください。</span>
+        <span class="agree-item-text">売却益が年間一定額を超える場合は<em>確定申告が必要</em>です。詳細は税理士または税務署へご相談ください。</span>
       </label>
 
       <label class="agree-item">
         <input type="checkbox" name="agree6" required>
-        <span class="agree-item-text">お客様が<em>暴力団・暴力団員</em>（暴力団員でなくなってから5年を経過しない人を含む）に該当した場合は取引を解除することができるものといたします。</span>
-      </label>
-
-      <label class="agree-item">
-        <input type="checkbox" name="agree7" required>
-        <span class="agree-item-text">ご予約は<em>来店日時を確保するもの</em>であり、お持込商品の買取を保証するものではございません。査定結果によっては買取できない場合もございます。</span>
+        <span class="agree-item-text"><em>暴力団関係者</em>に該当する場合は取引を解除いたします。</span>
       </label>
 
       <label class="agree-all-label">
         <input type="checkbox" id="agreeAll">
-        <span class="agree-all-text">上記すべての事項に同意する</span>
+        <span class="agree-all-text">上記すべてに同意する</span>
       </label>
     </div>
 
@@ -909,114 +928,66 @@ function updateRemoveBtns(listId) {
 
 
 // ============================================================
-// 商品写真（最大5枚）
+// 商品写真（最大5枚・リスト形式）
 // ============================================================
 const MAX_PHOTOS = 5
-const photoFiles = []  // { file, base64, type }
+const photoFiles = []  // { file, type }
 
-function buildPhotoSlots() {
-  const grid = document.getElementById("photoGrid")
-  grid.innerHTML = ""
-  for (let i = 0; i < MAX_PHOTOS; i++) {
-    const slot = document.createElement("div")
-    slot.className = "photo-slot"
-    slot.id = "slot_" + i
+// ファイル入力から写真を追加（カメラ・アルバム共通ハンドラ）
+function handlePhotoInput(input) {
+  const file = input.files && input.files[0]
+  if (!file) return
+  if (photoFiles.length >= MAX_PHOTOS) return
+  photoFiles.push({ file: file, type: file.type })
+  input.value = ""
+  renderPhotoList()
+}
 
-    // 削除ボタン
-    const del = document.createElement("div")
-    del.className = "photo-slot-del"
-    del.textContent = "✕"
-    del.addEventListener("click", function(e) {
-      e.stopPropagation()
-      removePhoto(i)
-    })
+// メイン追加ボタン（input#photoFileInput）
+document.getElementById("photoFileInput").addEventListener("change", function() {
+  handlePhotoInput(this)
+})
 
-    // プレビュー画像
+function renderPhotoList() {
+  const list = document.getElementById("photoList")
+  list.innerHTML = ""
+  photoFiles.forEach(function(p, i) {
+    const row = document.createElement("div")
+    row.style.cssText = "display:flex;align-items:center;gap:10px;padding:8px 10px;" +
+      "background:#faf8f4;border:1px solid var(--border);border-radius:6px;"
+
     const img = document.createElement("img")
+    img.src = URL.createObjectURL(p.file)
+    img.style.cssText = "width:52px;height:52px;object-fit:cover;border-radius:4px;flex-shrink:0;"
 
-    // ラベル
-    const inner = document.createElement("div")
-    inner.className = "photo-slot-inner"
-    inner.innerHTML = '<span class="photo-slot-icon">📷</span><span class="photo-slot-label">' + (i === 0 ? "追加" : "") + '</span>'
+    const info = document.createElement("div")
+    info.style.cssText = "flex:1;min-width:0;"
+    info.innerHTML = '<div style="font-size:11px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+      (i + 1) + '枚目</div>' +
+      '<div style="font-size:10px;color:#b0a898;margin-top:2px;">' +
+      Math.round(p.file.size / 1024) + ' KB</div>'
 
-    // ファイル入力
-    const input = document.createElement("input")
-    input.type = "file"
-    input.accept = "image/*"
-    input.capture = "environment"  // カメラ優先（撮影可）
-    input.addEventListener("change", function(e) {
-      const file = e.target.files[0]
-      if (!file) return
-      handlePhotoSelect(i, file)
-      input.value = ""
+    const del = document.createElement("button")
+    del.type = "button"
+    del.textContent = "✕"
+    del.style.cssText = "flex-shrink:0;width:32px;height:32px;border:1px solid var(--border);" +
+      "background:#fff;border-radius:4px;color:#c0392b;font-size:14px;cursor:pointer;"
+    del.addEventListener("click", function() {
+      photoFiles.splice(i, 1)
+      renderPhotoList()
     })
 
-    slot.appendChild(del)
-    slot.appendChild(img)
-    slot.appendChild(inner)
-    slot.appendChild(input)
-    grid.appendChild(slot)
-  }
-  renderPhotoSlots()
-}
+    row.appendChild(img)
+    row.appendChild(info)
+    row.appendChild(del)
+    list.appendChild(row)
+  })
 
-function handlePhotoSelect(index, file) {
-  const reader = new FileReader()
-  reader.onload = function(e) {
-    const base64 = e.target.result.split(",")[1]
-    // 空きスロットに追加（indexは見た目の位置、実際はphotoFilesの末尾に追加）
-    const emptyIdx = photoFiles.length
-    if (emptyIdx >= MAX_PHOTOS) return
-    photoFiles.push({ file, base64, type: file.type })
-    renderPhotoSlots()
-  }
-  reader.readAsDataURL(file)
-}
-
-function removePhoto(slotIndex) {
-  // slotIndexはphotoFiles配列のindex
-  if (slotIndex < photoFiles.length) {
-    photoFiles.splice(slotIndex, 1)
-    renderPhotoSlots()
-  }
-}
-
-function renderPhotoSlots() {
-  for (let i = 0; i < MAX_PHOTOS; i++) {
-    const slot = document.getElementById("slot_" + i)
-    if (!slot) continue
-    const img   = slot.querySelector("img")
-    const inner = slot.querySelector(".photo-slot-inner")
-    const input = slot.querySelector("input[type='file']")
-    const del   = slot.querySelector(".photo-slot-del")
-
-    if (i < photoFiles.length) {
-      // 写真あり
-      img.src = URL.createObjectURL(photoFiles[i].file)
-      slot.classList.add("filled")
-      inner.style.display = "none"
-      // 削除ボタンのclickをi固定で付け直す
-      del.onclick = function(e) { e.stopPropagation(); photoFiles.splice(i, 1); renderPhotoSlots() }
-    } else if (i === photoFiles.length) {
-      // 次の追加スロット
-      slot.classList.remove("filled")
-      img.src = ""
-      inner.style.display = ""
-      inner.querySelector(".photo-slot-label").textContent = "追加"
-      input.style.display = ""
-    } else {
-      // 未使用スロット（グレーアウト）
-      slot.classList.remove("filled")
-      img.src = ""
-      inner.style.display = ""
-      inner.querySelector(".photo-slot-label").textContent = ""
-      input.style.display = "none"
-    }
-  }
+  // 5枚になったら追加エリアを非表示
+  const addArea = document.getElementById("photoAddArea")
+  if (addArea) addArea.style.display = photoFiles.length >= MAX_PHOTOS ? "none" : ""
   document.getElementById("photoCount").textContent = photoFiles.length + " / 5枚"
 }
-
-buildPhotoSlots()
 
 
 // ============================================================
@@ -1138,8 +1109,7 @@ form.addEventListener("submit", async function(e) {
   if (photoFiles.length > 0) {
     const compressed = await Promise.all(photoFiles.map(function(p) {
       return compressImage(p.file)
-    }))
-    data.images     = compressed.map(function(c) { return c.base64 })
+    }))    data.images     = compressed.map(function(c) { return c.base64 })
     data.imageTypes = compressed.map(function(c) { return c.type })
     data.image      = data.images[0]
     data.imageType  = data.imageTypes[0]
