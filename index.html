@@ -107,25 +107,22 @@ textarea{height:90px;resize:none;line-height:1.7}
 .members-field{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
 .members-field.show{display:block}
 
-/* 商品行：共通ベース */
-.item-row{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
-.item-row:last-child{margin-bottom:0}
-.item-row-top{display:flex;gap:8px;align-items:center}
-.item-row-bottom{display:flex;gap:6px;align-items:center;padding-left:2px}
-.item-select{flex:1;min-width:0}
-.item-sub-label{font-size:11px;color:#9b9490;flex-shrink:0;white-space:nowrap}
-/* グループA：品名＋点数＋削除を1行に */
-.item-row-a{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+/* 商品行 */
+.item-row-a{display:flex;gap:6px;align-items:center;margin-bottom:8px}
 .item-row-a:last-child{margin-bottom:0}
-.item-row-a .item-select{flex:1;min-width:0}
-.item-count{width:80px;flex-shrink:0}
-.weight-sel{width:90px;flex-shrink:0}
-.weight-input{width:64px;flex-shrink:0}
+.item-select{flex:1;min-width:0}
+.item-count{width:72px;flex-shrink:0}
+.weight-sel{width:82px;flex-shrink:0}
+.weight-input{width:72px;flex-shrink:0;padding:12px 8px;
+  background:#faf8f4;border:1px solid var(--border);
+  border-radius:4px;font-size:15px;color:var(--dark);
+  font-family:'Noto Sans JP',sans-serif;outline:none;}
+.weight-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,151,58,0.1);background:#fff}
 .item-other-input{flex:1;min-width:60px;padding:10px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;background:#fafaf8;}
 .item-remove{
-  width:36px;height:36px;border:1px solid var(--border);
-  background:#fff;border-radius:4px;color:#c0392b;font-size:16px;
-  cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;flex-shrink:0;border:1px solid var(--border);
+  background:#fff;border-radius:4px;color:#c0392b;font-size:15px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
   -webkit-appearance:none;
 }
 .item-remove:active{background:#fdecea}
@@ -410,15 +407,8 @@ textarea{height:90px;resize:none;line-height:1.7}
       <div class="step-label">お持込商品</div>
     </div>
     <div class="card">
-      <!-- グループA：点数 -->
-      <div class="item-group-label">◆ 点数で入力（ジュエリー・時計・バッグ）</div>
-      <div id="itemListA"></div>
-      <button type="button" class="add-btn" id="addItemBtnA">＋ 追加する</button>
-
-      <!-- グループB：重量 -->
-      <div class="item-group-label" style="margin-top:18px">◆ 重量で入力（SGCバー・インゴット・コイン）</div>
-      <div id="itemListB"></div>
-      <button type="button" class="add-btn" id="addItemBtnB">＋ 追加する</button>
+      <div id="itemList"></div>
+      <button type="button" class="add-btn" id="addItemBtn">＋ 追加する</button>
     </div>
 
     <!-- STEP 4 本人確認書類 -->
@@ -732,199 +722,125 @@ document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
 
 
 // ============================================================
-// 商品行 グループA（点数）
+// 商品行（統合・全カテゴリ1リスト）
 // ============================================================
-const CATS_A  = ['ジュエリー（石付）','ジュエリー（石無）','ダイヤモンド・色石','時計','バッグ','その他']
-const COUNTS  = ['1点','2点','3点','4点','5点','6点','7点','8点','9点','10点以上']
+const ALL_CATS = [
+  'ジュエリー（石付）','ジュエリー（石無）','ダイヤモンド・色石',
+  '時計','バッグ',
+  'SGCバー','インゴット','コイン',
+  'その他'
+]
+const COUNTS       = ['1点','2点','3点','4点','5点','6点','7点','8点','9点','10点以上']
+const WEIGHTS_BAR  = ['100g','200g']
+const WEIGHTS_ING  = ['5g','10g','20g','50g','100g','その他']
+const WEIGHTS_COIN = ['1oz','1/2oz','1/4oz','1/10oz','その他']
+// 重量入力が必要なカテゴリ
+const WEIGHT_CATS  = { 'SGCバー': WEIGHTS_BAR, 'インゴット': WEIGHTS_ING, 'コイン': WEIGHTS_COIN }
 
-let itemIndexA = 0
-function createItemRowA(index) {
+let itemIndex = 0
+
+function createItemRow(index) {
   const div = document.createElement("div")
   div.className = "item-row-a"
 
+  // 品目セレクト
   const catSel = document.createElement("select")
   catSel.name = "item_cat_" + index
   catSel.className = "item-select"
-  CATS_A.forEach(c => {
+  const ph = document.createElement("option"); ph.value = ""; ph.textContent = "— 品目 —"
+  catSel.appendChild(ph)
+  ALL_CATS.forEach(function(c) {
     const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o)
   })
 
-  // 「その他」用テキスト入力（初期は非表示）
+  // 「その他」用テキスト入力
   const otherInput = document.createElement("input")
   otherInput.type = "text"
-  otherInput.name = "item_cat_other_" + index
+  otherInput.name = "item_other_" + index
   otherInput.className = "item-other-input"
   otherInput.placeholder = "品名を入力"
   otherInput.style.display = "none"
 
-  const cntSel = document.createElement("select")
-  cntSel.name = "item_cnt_" + index
-  cntSel.className = "item-count"
-  COUNTS.forEach(c => {
-    const o = document.createElement("option"); o.value = c; o.textContent = c; cntSel.appendChild(o)
-  })
-
-  catSel.addEventListener("change", function() {
-    if (this.value === "その他") {
-      otherInput.style.display = ""
-    } else {
-      otherInput.style.display = "none"
-      otherInput.value = ""
-    }
-  })
-
-  const rm = document.createElement("button")
-  rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
-  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListA") })
-
-  div.appendChild(catSel); div.appendChild(otherInput); div.appendChild(cntSel); div.appendChild(rm)
-  return div
-}
-
-function addItemA() {
-  document.getElementById("itemListA").appendChild(createItemRowA("a" + itemIndexA++))
-  updateRemoveBtns("itemListA")
-}
-addItemA()
-document.getElementById("addItemBtnA").addEventListener("click", addItemA)
-
-
-// ============================================================
-// 商品行 グループB（重量）
-// ============================================================
-const CATS_B       = ['SGCバー', 'インゴット', 'コイン']
-const WEIGHTS_BAR  = ['100g', '200g']
-const WEIGHTS_ING  = ['5g', '10g', '20g', '50g', '100g', 'その他']
-const WEIGHTS_COIN = ['1oz', '1/2oz', '1/4oz', '1/10oz', 'その他']
-
-let itemIndexB = 0
-function createItemRowB(index) {
-  const div = document.createElement("div")
-  div.className = "item-row-a"
-
-  // 品種セレクト
-  const catSel = document.createElement("select")
-  catSel.name = "item_cat_b_" + index
-  catSel.className = "item-select"
-  catSel.style.cssText = "flex:0 0 auto;width:110px;will-change:transform;transform:translateZ(0)"
-  const ph = document.createElement("option"); ph.value = ""; ph.textContent = "— 選択 —"; catSel.appendChild(ph)
-  CATS_B.forEach(c => {
-    const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o)
-  })
-
-  // 重量セレクト（SGCバー・コイン用、初期は非表示）
+  // 重量セレクト（SGCバー・インゴット・コイン用）
   const weightSel = document.createElement("select")
   weightSel.name = "item_weight_sel_" + index
-  weightSel.className = "item-count weight-sel"
+  weightSel.className = "weight-sel"
   weightSel.style.display = "none"
 
-  // テキスト入力（インゴット・その他用、初期は非表示）
+  // 重量テキスト入力（その他重量用）
   const wInput = document.createElement("input")
   wInput.type = "text"
   wInput.name = "item_weight_" + index
   wInput.className = "weight-input"
   wInput.placeholder = "重量"
   wInput.inputMode = "decimal"
-  wInput.style.visibility = "hidden"
-  wInput.style.width = "0"
+  wInput.style.display = "none"
 
-  // 単位ラベル（初期は非表示）
-  const wUnit = document.createElement("span")
-  wUnit.className = "weight-unit"
-  wUnit.style.display = "none"
-
-  // 点数セレクト（常に表示）
+  // 点数セレクト
   const cntSel = document.createElement("select")
-  cntSel.name = "item_cnt_b_" + index
+  cntSel.name = "item_cnt_" + index
   cntSel.className = "item-count"
-  COUNTS.forEach(c => {
+  COUNTS.forEach(function(c) {
     const o = document.createElement("option"); o.value = c; o.textContent = c; cntSel.appendChild(o)
   })
 
-  function applyWeightSel(val) {
-    weightSel.innerHTML = ""
-    weightSel.style.display = "none"
-    wInput.style.visibility = "hidden"
-    wInput.style.width = "0"
-    wInput.value = ""
-
-    if (!val) return
-
-    if (val === 'SGCバー') {
-      WEIGHTS_BAR.forEach(w => {
-        const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
-      })
-      weightSel.style.display = ""
-      weightSel.onchange = null
-
-    } else if (val === 'インゴット') {
-      WEIGHTS_ING.forEach(w => {
-        const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
-      })
-      weightSel.style.display = ""
-      weightSel.onchange = function() {
-        if (this.value === 'その他') {
-          wInput.style.visibility = "visible"
-          wInput.style.width = "72px"
-          wInput.placeholder = "重量(g)"
-        } else {
-          wInput.style.visibility = "hidden"
-          wInput.style.width = "0"
-          wInput.value = ""
-        }
-      }
-      weightSel.dispatchEvent(new Event("change"))
-
-    } else if (val === 'コイン') {
-      WEIGHTS_COIN.forEach(w => {
-        const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
-      })
-      weightSel.style.display = ""
-      weightSel.onchange = function() {
-        if (this.value === 'その他') {
-          wInput.style.visibility = "visible"
-          wInput.style.width = "72px"
-          wInput.placeholder = "oz数"
-        } else {
-          wInput.style.visibility = "hidden"
-          wInput.style.width = "0"
-          wInput.value = ""
-        }
-      }
-      weightSel.dispatchEvent(new Event("change"))
-
-    }
-  }
-
-  catSel.addEventListener("change", function() { applyWeightSel(this.value) })
-
+  // 削除ボタン
   const rm = document.createElement("button")
   rm.type = "button"; rm.className = "item-remove"; rm.textContent = "✕"
-  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns("itemListB") })
+  rm.addEventListener("click", function() { div.remove(); updateRemoveBtns() })
+
+  // カテゴリ変更時の表示制御
+  catSel.addEventListener("change", function() {
+    const val = this.value
+    // その他テキスト
+    otherInput.style.display = (val === "その他") ? "" : "none"
+    otherInput.value = (val !== "その他") ? "" : otherInput.value
+    // 重量入力リセット
+    weightSel.style.display = "none"
+    weightSel.innerHTML = ""
+    wInput.style.display = "none"
+    wInput.value = ""
+
+    if (WEIGHT_CATS[val]) {
+      // 重量セレクトを構築
+      WEIGHT_CATS[val].forEach(function(w) {
+        const o = document.createElement("option"); o.value = w; o.textContent = w; weightSel.appendChild(o)
+      })
+      weightSel.style.display = ""
+      // 「その他」選択時にテキスト入力を表示
+      weightSel.onchange = function() {
+        const isOther = this.value === "その他"
+        wInput.style.display = isOther ? "" : "none"
+        wInput.placeholder = (val === "コイン") ? "oz数" : "重量(g)"
+        if (!isOther) wInput.value = ""
+      }
+      weightSel.dispatchEvent(new Event("change"))
+    }
+  })
 
   div.appendChild(catSel)
+  div.appendChild(otherInput)
   div.appendChild(weightSel)
   div.appendChild(wInput)
-  div.appendChild(wUnit)
   div.appendChild(cntSel)
   div.appendChild(rm)
   return div
 }
 
-function addItemB() {
-  document.getElementById("itemListB").appendChild(createItemRowB("b" + itemIndexB++))
-  updateRemoveBtns("itemListB")
+function addItem() {
+  document.getElementById("itemList").appendChild(createItemRow("i" + itemIndex++))
+  updateRemoveBtns()
 }
-addItemB()
-document.getElementById("addItemBtnB").addEventListener("click", addItemB)
 
-
-function updateRemoveBtns(listId) {
-  const rows = document.querySelectorAll("#" + listId + " .item-row-a, #" + listId + " .item-row")
-  rows.forEach(r => {
+function updateRemoveBtns() {
+  const rows = document.querySelectorAll("#itemList .item-row-a")
+  rows.forEach(function(r) {
     r.querySelector(".item-remove").style.visibility = rows.length > 1 ? "visible" : "hidden"
   })
 }
+
+addItem()
+document.getElementById("addItemBtn").addEventListener("click", addItem)
 
 
 // ============================================================
@@ -1073,35 +989,31 @@ form.addEventListener("submit", async function(e) {
     data.companionRelation = ""
   }
 
-  // 商品リストをまとめる（グループA：点数、グループB：重量）
+  // 商品リストをまとめる（統合リスト）
   const items = []
-  document.querySelectorAll("#itemListA .item-row-a").forEach(row => {
+  document.querySelectorAll("#itemList .item-row-a").forEach(function(row) {
     const catSel    = row.querySelector(".item-select")
     const otherInput= row.querySelector(".item-other-input")
-    const cntSel    = row.querySelector(".item-count")
-    if (!catSel || !catSel.value) return
-    const cat = catSel.value === "その他" && otherInput && otherInput.value.trim()
-      ? "その他（" + otherInput.value.trim() + "）"
-      : catSel.value
-    const cnt = cntSel ? cntSel.value : ""
-    items.push(cat + " " + cnt)
-  })
-  document.querySelectorAll("#itemListB .item-row-a").forEach(row => {
-    const catSel    = row.querySelector(".item-select")
     const weightSel = row.querySelector(".weight-sel")
     const wInput    = row.querySelector(".weight-input")
     const cntSel    = row.querySelector(".item-count")
     if (!catSel || !catSel.value) return
+
+    // 品目名（その他の場合はテキスト入力値を使用）
+    const cat = (catSel.value === "その他" && otherInput && otherInput.value.trim())
+      ? "その他（" + otherInput.value.trim() + "）"
+      : catSel.value
+
+    // 重量（SGCバー・インゴット・コインの場合）
     let weight = ""
     if (weightSel && weightSel.style.display !== "none") {
-      weight = weightSel.value === "その他"
-        ? (wInput && wInput.style.visibility !== "hidden" && wInput.value.trim() ? wInput.value.trim() : "重量不明")
+      weight = (weightSel.value === "その他" && wInput && wInput.style.display !== "none" && wInput.value.trim())
+        ? wInput.value.trim()
         : weightSel.value
-    } else if (wInput && wInput.style.visibility !== "hidden") {
-      weight = wInput.value.trim() || "重量不明"
     }
+
     const cnt = cntSel ? cntSel.value : ""
-    items.push(catSel.value + (weight ? " " + weight : "") + " " + cnt)
+    items.push(cat + (weight ? " " + weight : "") + " " + cnt)
   })
   data.items = items.join('、')
 
