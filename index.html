@@ -1109,7 +1109,8 @@ form.addEventListener("submit", async function(e) {
   if (photoFiles.length > 0) {
     const compressed = await Promise.all(photoFiles.map(function(p) {
       return compressImage(p.file)
-    }))    data.images     = compressed.map(function(c) { return c.base64 })
+    }))
+    data.images     = compressed.map(function(c) { return c.base64 })
     data.imageTypes = compressed.map(function(c) { return c.type })
     data.image      = data.images[0]
     data.imageType  = data.imageTypes[0]
