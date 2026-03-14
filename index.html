@@ -1036,6 +1036,34 @@ agreeChecks.forEach(cb => cb.addEventListener("change", function() {
   agreeAll.checked = [...agreeChecks].every(c => c.checked)
 }))
 
+// ============================================================
+// 画像圧縮（③ canvas利用、長辺1200px・JPEG品質0.75に縮小）
+// ============================================================
+function compressImage(file, maxSize, quality) {
+  maxSize  = maxSize  || 1200
+  quality  = quality  || 0.75
+  return new Promise(function(resolve) {
+    const reader = new FileReader()
+    reader.onload = function(e) {
+      const img = new Image()
+      img.onload = function() {
+        let w = img.width, h = img.height
+        if (w > maxSize || h > maxSize) {
+          if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
+          else       { w = Math.round(w * maxSize / h); h = maxSize }
+        }
+        const canvas = document.createElement("canvas")
+        canvas.width = w; canvas.height = h
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h)
+        const dataUrl = canvas.toDataURL("image/jpeg", quality)
+        resolve({ base64: dataUrl.split(",")[1], type: "image/jpeg" })
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 form.addEventListener("submit", async function(e) {
   e.preventDefault()
 
@@ -1052,6 +1080,19 @@ form.addEventListener("submit", async function(e) {
 
   const formData = new FormData(form)
   const data     = Object.fromEntries(formData)
+
+  // ⑧ 日時をタイムゾーン付きISO形式に変換（datetime-local → JST ISO文字列）
+  ;["date1","date2","date3"].forEach(function(key) {
+    if (data[key]) {
+      const d = new Date(data[key])
+      if (!isNaN(d)) {
+        // "+09:00"を付与してGAS側でタイムゾーンを明示
+        const pad = function(n) { return String(n).padStart(2,"0") }
+        data[key] = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) +
+          "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":00+09:00"
+      }
+    }
+  })
 
   // LIFFで取得したユーザーIDをセット
   data.lineUserId = liffUserId
@@ -1088,30 +1129,35 @@ form.addEventListener("submit", async function(e) {
   })
   data.items = items.join('、')
 
-  // 画像（最大5枚）をbase64で送信
+  // ③ 画像を圧縮してからbase64で送信（最大5枚）
   if (photoFiles.length > 0) {
-    data.images     = photoFiles.map(p => p.base64)
-    data.imageTypes = photoFiles.map(p => p.type)
-    // 後方互換のため1枚目をimage/imageTypeにも入れる
-    data.image      = photoFiles[0].base64
-    data.imageType  = photoFiles[0].type
+    const compressed = await Promise.all(photoFiles.map(function(p) {
+      return compressImage(p.file)
+    }))
+    data.images     = compressed.map(function(c) { return c.base64 })
+    data.imageTypes = compressed.map(function(c) { return c.type })
+    data.image      = data.images[0]
+    data.imageType  = data.imageTypes[0]
   }
 
-  // GitHub Pages → GASにfetchで送信
+  // ② GitHub Pages → GASにfetchで送信（no-corsを廃止してエラー検知を有効化）
   try {
-    await fetch(GAS_URL, {
+    const res = await fetch(GAS_URL, {
       method: "POST",
-      mode: "no-cors",
+      mode: "cors",
       body: JSON.stringify(data),
       headers: { "Content-Type": "text/plain" }
     })
+    if (!res.ok) throw new Error("HTTP " + res.status)
+    const json = await res.json().catch(function() { return {} })
+    if (json.status === "error") throw new Error(json.message || "サーバーエラー")
     overlay.classList.remove("on")
     document.getElementById("formArea").style.display    = "none"
     document.getElementById("successArea").style.display = "block"
   } catch(err) {
     overlay.classList.remove("on")
     submitBtn.disabled = false
-    alert("送信に失敗しました。もう一度お試しください。")
+    alert("送信に失敗しました。もう一度お試しください。\n\n" + err.message)
   }
 })
 
