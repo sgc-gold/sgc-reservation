@@ -112,7 +112,7 @@ textarea{height:90px;resize:none;line-height:1.7}
 .item-row-a:last-child{margin-bottom:0}
 .item-select{flex:1;min-width:0}
 .item-count{width:88px;flex-shrink:0}
-.weight-sel{width:82px;flex-shrink:0}
+.weight-sel{width:100px;flex-shrink:0}
 .weight-input{width:72px;flex-shrink:0;padding:12px 8px;
   background:#faf8f4;border:1px solid var(--border);
   border-radius:4px;font-size:15px;color:var(--dark);
@@ -428,9 +428,14 @@ textarea{height:90px;resize:none;line-height:1.7}
           </div>
           <div style="flex:1;min-width:0;">
             <label>前回ご来店日</label>
-            <input type="text" name="lastVisitDate" id="lastVisitDateInput"
-              placeholder="例：2024/08/10 や 8月頃"
-              style="background:#faf8f4;">
+            <!-- hidden: 実際の送信値 -->
+            <input type="hidden" name="lastVisitDate" id="lastVisitDateInput">
+            <!-- 表示用テキストボックス（タップでピッカーを開く） -->
+            <input type="text" id="lastVisitDateDisplay" readonly
+              placeholder="タップして選択"
+              style="width:100%;padding:14px;background:#faf8f4;border:1px solid var(--border);
+                border-radius:4px;font-size:15px;color:var(--dark);cursor:pointer;
+                -webkit-appearance:none;appearance:none;">
           </div>
         </div>
         <div id="lastVisitHint" style="display:none;margin-top:6px;padding:7px 10px;
@@ -438,7 +443,50 @@ textarea{height:90px;resize:none;line-height:1.7}
           font-size:11px;color:#2d7a3c;line-height:1.7;">
         </div>
         <div style="margin-top:6px;font-size:10px;color:#b0a898;line-height:1.8;">
-          日付が不明な場合は「8月頃」など大まかでも構いません。
+          年月だけでも選択できます。日付まで不明な場合は「決定」でそのまま確定してください。
+        </div>
+
+        <!-- ▼ カスタム年月日ピッカー -->
+        <div id="lvPicker" style="display:none;position:fixed;inset:0;z-index:9999;
+          background:rgba(26,22,18,0.55);align-items:flex-end;justify-content:center;">
+          <div style="background:#fff;width:100%;max-width:480px;border-radius:20px 20px 0 0;
+            padding:0 0 max(24px,env(safe-area-inset-bottom));overflow:hidden;">
+            <!-- ヘッダー -->
+            <div style="display:flex;align-items:center;justify-content:space-between;
+              padding:16px 18px 12px;border-bottom:1px solid var(--border);">
+              <button type="button" id="lvClear"
+                style="font-size:13px;color:#c0392b;background:none;border:none;cursor:pointer;padding:4px 8px;">
+                クリア
+              </button>
+              <span style="font-size:13px;font-weight:600;color:var(--dark)">前回ご来店日</span>
+              <button type="button" id="lvConfirm"
+                style="font-size:13px;color:#2d7a3c;font-weight:700;background:none;border:none;cursor:pointer;padding:4px 8px;">
+                決定
+              </button>
+            </div>
+            <!-- 年月選択 -->
+            <div style="display:flex;gap:0;padding:14px 18px 8px;">
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:9px;letter-spacing:0.18em;color:var(--gray);margin-bottom:8px;">年</div>
+                <div id="lvYearList" style="height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+                  scroll-snap-type:y mandatory;scrollbar-width:none;"></div>
+              </div>
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:9px;letter-spacing:0.18em;color:var(--gray);margin-bottom:8px;">月</div>
+                <div id="lvMonthList" style="height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+                  scroll-snap-type:y mandatory;scrollbar-width:none;"></div>
+              </div>
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:9px;letter-spacing:0.18em;color:var(--gray);margin-bottom:8px;">日（任意）</div>
+                <div id="lvDayList" style="height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+                  scroll-snap-type:y mandatory;scrollbar-width:none;"></div>
+              </div>
+            </div>
+            <!-- 選択中プレビュー -->
+            <div id="lvPreview"
+              style="text-align:center;font-size:14px;color:var(--gold);font-weight:600;
+                padding:4px 0 10px;letter-spacing:0.06em;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -720,14 +768,205 @@ liff.init({ liffId: LIFF_ID })
 // DBから取得した前回来店日（空なら未取得 or なし）
 let lastVisitDateFromDB = ""
 
+// ============================================================
+// 前回来店日 カスタムピッカー
+// ============================================================
+;(function() {
+  const now   = new Date()
+  let selYear = now.getFullYear()
+  let selMonth= now.getMonth() + 1  // 1-12
+  let selDay  = 0  // 0=未選択
+
+  const ITEM_H = 44  // スクロールアイテム高さ(px)
+
+  function buildList(el, items, selectedVal, onSelect) {
+    el.innerHTML = ""
+    el.style.cssText += ";scrollbar-width:none;"
+    // 上下パディング用ダミー
+    const pad = () => {
+      const d = document.createElement("div")
+      d.style.cssText = "height:68px;flex-shrink:0;"
+      return d
+    }
+    el.appendChild(pad())
+    items.forEach(function(item) {
+      const div = document.createElement("div")
+      div.dataset.val = item.val
+      div.textContent = item.label
+      div.style.cssText = "height:" + ITEM_H + "px;display:flex;align-items:center;" +
+        "justify-content:center;font-size:16px;cursor:pointer;" +
+        "scroll-snap-align:center;color:var(--dark);transition:color 0.15s,font-weight 0.15s;"
+      if (item.val === selectedVal) {
+        div.style.color = "var(--gold)"
+        div.style.fontWeight = "700"
+      }
+      div.addEventListener("click", function() {
+        onSelect(item.val)
+      })
+      el.appendChild(div)
+    })
+    el.appendChild(pad())
+    // 選択値にスクロール
+    const idx = items.findIndex(function(i) { return i.val === selectedVal })
+    if (idx >= 0) {
+      el.scrollTop = idx * ITEM_H
+    }
+    // スクロール終了後に近い値にスナップ & ハイライト更新
+    el.addEventListener("scroll", function() {
+      clearTimeout(el._t)
+      el._t = setTimeout(function() {
+        const idx2 = Math.round(el.scrollTop / ITEM_H)
+        const item2 = items[Math.max(0, Math.min(idx2, items.length - 1))]
+        if (item2) onSelect(item2.val)
+      }, 80)
+    })
+  }
+
+  function getDaysInMonth(y, m) {
+    return new Date(y, m, 0).getDate()
+  }
+
+  function buildYearItems() {
+    const items = []
+    for (let y = now.getFullYear(); y >= now.getFullYear() - 10; y--) {
+      items.push({ val: y, label: y + "年" })
+    }
+    return items
+  }
+
+  function buildMonthItems() {
+    const items = []
+    for (let m = 1; m <= 12; m++) {
+      items.push({ val: m, label: m + "月" })
+    }
+    return items
+  }
+
+  function buildDayItems(y, m) {
+    const max = getDaysInMonth(y, m)
+    const items = [{ val: 0, label: "—" }]
+    for (let d = 1; d <= max; d++) {
+      items.push({ val: d, label: d + "日" })
+    }
+    return items
+  }
+
+  function updatePreview() {
+    const prev = document.getElementById("lvPreview")
+    if (!prev) return
+    const dayStr = selDay ? selDay + "日" : ""
+    prev.textContent = selYear + "年" + selMonth + "月" + (dayStr ? dayStr : "（日付未定）")
+  }
+
+  function rebuildDays() {
+    const el = document.getElementById("lvDayList")
+    if (!el) return
+    const items = buildDayItems(selYear, selMonth)
+    const cur = selDay > getDaysInMonth(selYear, selMonth) ? 0 : selDay
+    selDay = cur
+    buildList(el, items, cur, function(v) {
+      selDay = v
+      highlightList(el, v)
+      updatePreview()
+    })
+  }
+
+  function highlightList(el, val) {
+    el.querySelectorAll("div[data-val]").forEach(function(d) {
+      const isSelected = parseInt(d.dataset.val) === val
+      d.style.color = isSelected ? "var(--gold)" : "var(--dark)"
+      d.style.fontWeight = isSelected ? "700" : "400"
+    })
+  }
+
+  function openPicker() {
+    const picker = document.getElementById("lvPicker")
+    picker.style.display = "flex"
+
+    buildList(
+      document.getElementById("lvYearList"),
+      buildYearItems(), selYear,
+      function(v) { selYear = v; highlightList(document.getElementById("lvYearList"), v); rebuildDays(); updatePreview() }
+    )
+    buildList(
+      document.getElementById("lvMonthList"),
+      buildMonthItems(), selMonth,
+      function(v) { selMonth = v; highlightList(document.getElementById("lvMonthList"), v); rebuildDays(); updatePreview() }
+    )
+    rebuildDays()
+    updatePreview()
+  }
+
+  function closePicker() {
+    const picker = document.getElementById("lvPicker")
+    picker.style.display = "none"
+  }
+
+  function confirmPicker() {
+    const dayStr = selDay ? String(selDay).padStart(2, "0") : ""
+    const monStr = String(selMonth).padStart(2, "0")
+    // 送信値: dayがあれば "2024/08/10"、なければ "2024/08"
+    const val     = selYear + "/" + monStr + (dayStr ? "/" + dayStr : "")
+    // 表示値: "2024年8月10日" or "2024年8月"
+    const display = selYear + "年" + selMonth + "月" + (selDay ? selDay + "日" : "")
+    document.getElementById("lastVisitDateInput").value   = val
+    document.getElementById("lastVisitDateDisplay").value = display
+    const hint = document.getElementById("lastVisitHint")
+    hint.style.display = "none"
+    closePicker()
+  }
+
+  function clearPicker() {
+    document.getElementById("lastVisitDateInput").value   = ""
+    document.getElementById("lastVisitDateDisplay").value = ""
+    const hint = document.getElementById("lastVisitHint")
+    hint.style.display = "none"
+    closePicker()
+  }
+
+  // イベント登録（DOM構築後）
+  document.addEventListener("DOMContentLoaded", function() {
+    const display = document.getElementById("lastVisitDateDisplay")
+    if (display) display.addEventListener("click", openPicker)
+
+    const confirmBtn = document.getElementById("lvConfirm")
+    if (confirmBtn) confirmBtn.addEventListener("click", confirmPicker)
+
+    const clearBtn = document.getElementById("lvClear")
+    if (clearBtn) clearBtn.addEventListener("click", clearPicker)
+
+    // 背景タップで閉じる
+    const picker = document.getElementById("lvPicker")
+    if (picker) picker.addEventListener("click", function(e) {
+      if (e.target === picker) closePicker()
+    })
+  })
+
+  // DB取得値をピッカーの初期値にセットする関数（外部から呼ぶ）
+  window._lvSetFromDB = function(dateStr) {
+    // "2024/08/10" or "2024/08" の形式を想定
+    const parts = dateStr.split("/")
+    if (parts.length >= 2) {
+      selYear  = parseInt(parts[0]) || selYear
+      selMonth = parseInt(parts[1]) || selMonth
+      selDay   = parts[2] ? (parseInt(parts[2]) || 0) : 0
+    }
+  }
+})()
+
 function applyLastVisitDate() {
-  const input = document.getElementById("lastVisitDateInput")
-  const hint  = document.getElementById("lastVisitHint")
-  if (!input) return
-  if (lastVisitDateFromDB && !input.value) {
-    input.value = lastVisitDateFromDB
-    input.style.background = "#f0f7f1"
-    hint.textContent = "✅ 前回のご来店履歴から自動入力しました（修正可能です）"
+  const hint    = document.getElementById("lastVisitHint")
+  const display = document.getElementById("lastVisitDateDisplay")
+  const hidden  = document.getElementById("lastVisitDateInput")
+  if (!display || hidden.value) return   // すでに値があれば上書きしない
+  if (lastVisitDateFromDB) {
+    window._lvSetFromDB(lastVisitDateFromDB)
+    // 表示値を組み立て
+    const parts = lastVisitDateFromDB.split("/")
+    const y = parts[0], m = parseInt(parts[1]), d = parts[2] ? parseInt(parts[2]) : 0
+    display.value = y + "年" + m + "月" + (d ? d + "日" : "")
+    hidden.value  = lastVisitDateFromDB
+    hint.textContent = "✅ 前回のご来店履歴から自動入力しました（タップして修正できます）"
     hint.style.display = "block"
   }
 }
