@@ -111,7 +111,7 @@ textarea{height:90px;resize:none;line-height:1.7}
 .item-row-a{display:flex;gap:6px;align-items:center;margin-bottom:8px}
 .item-row-a:last-child{margin-bottom:0}
 .item-select{flex:1;min-width:0}
-.item-count{width:72px;flex-shrink:0}
+.item-count{width:88px;flex-shrink:0}
 .weight-sel{width:82px;flex-shrink:0}
 .weight-input{width:72px;flex-shrink:0;padding:12px 8px;
   background:#faf8f4;border:1px solid var(--border);
@@ -495,13 +495,24 @@ textarea{height:90px;resize:none;line-height:1.7}
         </select>
       </div>
       <div class="companion-fields" id="companionFields">
-        <label>同行者のご関係</label>
-        <select name="companionRelation">
-          <option>配偶者・パートナー</option>
-          <option>家族</option>
-          <option>友人・知人</option>
-          <option>その他</option>
-        </select>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <div style="flex:1;min-width:0;">
+            <label>同行者のご関係</label>
+            <select name="companionRelation">
+              <option>配偶者・パートナー</option>
+              <option>家族</option>
+              <option>友人・知人</option>
+              <option>その他</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <label>同行者の査定</label>
+            <select name="companionAssessment">
+              <option value="なし">同行者の査定なし</option>
+              <option value="あり">同行者も査定あり</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -549,7 +560,7 @@ textarea{height:90px;resize:none;line-height:1.7}
     </div>
     <div class="card">
       <div class="photo-hint">
-        全体・刻印・宝石アップなど各角度からお送りいただくとスムーズです。
+        全体・宝石アップなど各角度からお送りいただくとスムーズです。
       </div>
       <!-- 追加済み写真のプレビューリスト -->
       <div id="photoList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
@@ -561,22 +572,7 @@ textarea{height:90px;resize:none;line-height:1.7}
           <span style="font-size:18px">📷</span> 写真を追加する
           <input id="photoFileInput" type="file" accept="image/*" style="display:none">
         </label>
-        <div style="margin-top:6px;display:flex;gap:8px;">
-          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
-            padding:10px;background:#f0f7f1;border:1px solid #c8e0cb;border-radius:6px;
-            color:#2d7a3c;font-size:11px;cursor:pointer;">
-            <span>📸</span> カメラで撮影
-            <input type="file" accept="image/*" capture="environment" style="display:none"
-              onchange="handlePhotoInput(this)">
-          </label>
-          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
-            padding:10px;background:#f0f4fb;border:1px solid #c0d0e8;border-radius:6px;
-            color:#1a56c4;font-size:11px;cursor:pointer;">
-            <span>🖼️</span> アルバムから選択
-            <input type="file" accept="image/*" style="display:none"
-              onchange="handlePhotoInput(this)">
-          </label>
-        </div>
+
       </div>
       <div class="photo-count" id="photoCount" style="text-align:right;font-size:10px;color:var(--gray);margin-top:6px">0 / 5枚</div>
     </div>
@@ -1108,7 +1104,8 @@ form.addEventListener("submit", async function(e) {
 
   // 1名（本人のみ）の場合は同行者情報をクリア
   if (data.visitors === "1") {
-    data.companionRelation = ""
+    data.companionRelation    = ""
+    data.companionAssessment  = ""
   }
 
   // 商品リストをまとめる（統合リスト）
