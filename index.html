@@ -421,8 +421,25 @@ textarea{height:90px;resize:none;line-height:1.7}
         </select>
       </div>
       <div class="members-field" id="membersField">
-        <label>メンバーズカードNo.</label>
-        <input type="text" name="membersNo" placeholder="例：M1234">
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <div style="flex:1;min-width:0;">
+            <label>メンバーズカードNo.</label>
+            <input type="text" name="membersNo" placeholder="例：M1234">
+          </div>
+          <div style="flex:1;min-width:0;">
+            <label>前回ご来店日</label>
+            <input type="text" name="lastVisitDate" id="lastVisitDateInput"
+              placeholder="例：2024/08/10 や 8月頃"
+              style="background:#faf8f4;">
+          </div>
+        </div>
+        <div id="lastVisitHint" style="display:none;margin-top:6px;padding:7px 10px;
+          background:#f0f7f1;border-radius:5px;border-left:2px solid #2d7a3c;
+          font-size:11px;color:#2d7a3c;line-height:1.7;">
+        </div>
+        <div style="margin-top:6px;font-size:10px;color:#b0a898;line-height:1.8;">
+          日付が不明な場合は「8月頃」など大まかでも構いません。
+        </div>
       </div>
     </div>
 
@@ -687,8 +704,37 @@ liff.init({ liffId: LIFF_ID })
     const bar = document.getElementById("welcomeBar")
     bar.innerHTML = "<strong>" + liffUserName + "</strong> 様、ようこそ"
     bar.style.display = "block"
+
+    // 前回来店日をGASから取得（リピーター選択時に自動セット）
+    fetch(GAS_URL + "?api=lastVisit&lineUserId=" + encodeURIComponent(liffUserId))
+      .then(function(r) { return r.json() })
+      .then(function(json) {
+        if (json.found && json.date) {
+          lastVisitDateFromDB = json.date
+          // すでにリピーター選択済みならすぐに反映
+          if (document.getElementById("userTypeSelect").value === "リピーター") {
+            applyLastVisitDate()
+          }
+        }
+      })
+      .catch(function() {})
   })
   .catch(err => console.error("LIFF error:", err))
+
+// DBから取得した前回来店日（空なら未取得 or なし）
+let lastVisitDateFromDB = ""
+
+function applyLastVisitDate() {
+  const input = document.getElementById("lastVisitDateInput")
+  const hint  = document.getElementById("lastVisitHint")
+  if (!input) return
+  if (lastVisitDateFromDB && !input.value) {
+    input.value = lastVisitDateFromDB
+    input.style.background = "#f0f7f1"
+    hint.textContent = "✅ 前回のご来店履歴から自動入力しました（修正可能です）"
+    hint.style.display = "block"
+  }
+}
 
 
 // ============================================================
@@ -770,6 +816,8 @@ document.getElementById("userTypeSelect").addEventListener("change", function() 
   const isRepeater = this.value === "リピーター"
   document.getElementById("firstVisitField").style.display = isFirst ? "block" : "none"
   document.getElementById("membersField").classList.toggle("show", isRepeater)
+  // リピーター選択時：DBに履歴があれば前回来店日を自動セット
+  if (isRepeater) applyLastVisitDate()
 })
 
 
