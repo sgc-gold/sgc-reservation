@@ -9,7 +9,7 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html {
-  font-size: 16px; 
+  font-size: 16px;
   -webkit-text-size-adjust: 100%;
 }
 body {
@@ -57,7 +57,6 @@ p { font-size: 1.1rem; color: #777; line-height: 1.6; }
 <div class="box" id="content">読み込み中...</div>
 
 <script>
-// JSによるフォントサイズ固定は削除（CSSで管理するのがモダンな手法です）
 const p      = new URLSearchParams(location.search)
 const type   = p.get("type")   || ""
 const title  = p.get("title")  || ""
@@ -66,15 +65,23 @@ const date   = p.get("date")   || ""
 const staff  = p.get("staff")  || ""
 const status = p.get("status") || ""
 
+// ⑥ XSS対策：ユーザー入力値をテキストノードとして安全に挿入するヘルパー
+function t(str) {
+  const node = document.createTextNode(str)
+  const span = document.createElement("span")
+  span.appendChild(node)
+  return span.outerHTML
+}
+
 const box = document.getElementById("content")
 
 if (type === "success") {
-  const staffLine = staff ? '<br><span class="staff">操作者：' + staff + '</span>' : ''
-  const dateLine  = date  ? '<div style="font-size:0.9rem; color:#999; margin-top:8px;">' + date + '</div>' : ''
+  const staffLine = staff ? '<br><span class="staff">操作者：' + t(staff) + '</span>' : ''
+  const dateLine  = date  ? '<div style="font-size:0.9rem; color:#999; margin-top:8px;">' + t(date) + '</div>' : ''
   box.innerHTML =
     '<span class="icon">🎉</span>' +
-    '<h2>' + title + '</h2>' +
-    '<div class="info"><span class="gold">' + name + '</span> 様' +
+    '<h2>' + t(title) + '</h2>' +
+    '<div class="info"><span class="gold">' + t(name) + '</span> 様' +
     dateLine +
     staffLine + '</div>' +
     '<p class="note">顧客のLINEに通知しました</p>'
@@ -82,8 +89,8 @@ if (type === "success") {
   box.innerHTML =
     '<span class="icon">⚠️</span>' +
     '<h2>すでに処理済みです</h2>' +
-    '<div class="badge">' + status + '</div>' +
-    '<p><strong>' + name + '</strong> 様<br><small>' + date + '</small></p>'
+    '<div class="badge">' + t(status) + '</div>' +
+    '<p><strong>' + t(name) + '</strong> 様<br><small>' + t(date) + '</small></p>'
 } else {
   box.innerHTML = '<p>不明なページです</p>'
 }
